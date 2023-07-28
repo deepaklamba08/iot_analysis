@@ -1,0 +1,64 @@
+[
+  {
+    "id": "1",
+    "name": "app-1",
+    "description": "application 1",
+    "status": true,
+    "config": {},
+    "sources": [
+      {
+        "id": "1",
+        "name": "source-1",
+        "description": "source 1",
+        "status": true,
+        "type": "json",
+        "config": {
+          "file_path": "${lookup_path}"
+        }
+      }
+    ],
+    "transformations": [
+      {
+        "id": "1",
+        "name": "process-1",
+        "description": "process 1",
+        "status": true,
+        "type": "dummy_transformation",
+        "config": {
+          "data": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      {
+        "id": "2",
+        "name": "process-2",
+        "description": "process 2",
+        "status": true,
+        "type": "dummy_transformation",
+        "config": {
+          "data": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "1",
+        "name": "action-1",
+        "description": "action 1",
+        "status": true,
+        "type": "log_data",
+        "config": {}
+      }
+    ]
+  }
+]
