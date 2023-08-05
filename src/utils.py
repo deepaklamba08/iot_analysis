@@ -23,11 +23,13 @@ class SimpleCredentialProvider(CredentialProvider):
 class EnvironmentVariableCredentialProvider(CredentialProvider):
 
     def lookup(self, config: dict) -> dict:
-        variable_names = config['variable_names']
+        variables = config['variables']
         env_variables = {}
-        for key, value in os.environ.items():
-            if key in variable_names:
-                env_variables[key] = value
+        os_env_variables = os.environ.items()
+        for variable_name in variables.keys():
+            variable_value = list(filter(lambda pair: pair[0] == variables[variable_name], os_env_variables))
+            if len(variable_value) > 0:
+                env_variables[variable_name] = variable_value[0][1]
         return env_variables
 
 

@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
     TransformationTemplate, ActionTemplate
 from src.store import ApplicationStore
-from src.utils import load_module
 from src.utils import get_logger
+from src.utils import load_module
+
 
 class ProcessResult:
 
@@ -108,7 +109,8 @@ class ActionProcessor(Processor):
     def __init__(self, actions: list, data_dict: dict):
         self.actions = actions
         self.data_dict = data_dict
-        self.action_providers = {'log_data': 'src.custom.LogDataAction'}
+        self.action_providers = {'log_data': 'src.custom.LogDataAction',
+                                 'telegram_message':'src.extension.TelegramMessageAction'}
         self.logger = get_logger()
 
     def __process_action(self, action: Action):

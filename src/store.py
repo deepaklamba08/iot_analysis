@@ -79,7 +79,7 @@ class ApplicationStore:
             sources=list(map(lambda source_config: ApplicationStore.__parse_source(source_config),
                              config['sources'])),
             transformations=list(map(lambda tr_config: ApplicationStore.__parse_transformation(tr_config),
-                                     config['transformations'])),
+                                     config.get('transformations', []))),
             actions=list(map(lambda action_config: ApplicationStore.__parse_action(action_config),
                              config['actions'])),
             description=config['description'],

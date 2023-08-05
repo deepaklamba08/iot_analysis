@@ -11,6 +11,25 @@
         "name": "source-1",
         "description": "source 1",
         "status": true,
+        "type": "click_house",
+        "config": {
+          "credential_provider": {
+            "type": "environment_variable",
+            "variables": {
+              "host": "clickhouse_host",
+              "port": "clickhouse_port",
+              "user": "clickhouse_user",
+              "password": "clickhouse_password"
+            }
+          },
+          "query": "show databases"
+        }
+      },
+      {
+        "id": "2",
+        "name": "source-2",
+        "description": "source 2",
+        "status": true,
         "type": "json",
         "config": {
           "file_path": "${lookup_path}"
@@ -58,6 +77,45 @@
         "status": true,
         "type": "log_data",
         "config": {}
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "telegram-message-test",
+    "description": "send a telegram message using source data",
+    "status": true,
+    "config": {},
+    "sources": [
+      {
+        "id": "1",
+        "name": "telegram-source",
+        "description": "source for telegram message",
+        "status": true,
+        "type": "json",
+        "config": {
+          "file_path": "../data/sample_messages.json"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "1",
+        "name": "action-1",
+        "description": "send a telegram message",
+        "status": true,
+        "type": "telegram_message",
+        "config": {
+          "message_source_type": "source",
+          "message_source_name": "telegram-source",
+          "credential_provider": {
+            "type": "environment_variable",
+            "variables": {
+              "api_token": "TELEGRAM_API_TOKEN",
+              "chat_id": "TELEGRAM_CHAT_ID"
+            }
+          }
+        }
       }
     ]
   }
