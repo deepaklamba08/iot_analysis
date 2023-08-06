@@ -110,7 +110,8 @@ class ActionProcessor(Processor):
         self.actions = actions
         self.data_dict = data_dict
         self.action_providers = {'log_data': 'src.custom.LogDataAction',
-                                 'telegram_message':'src.extension.TelegramMessageAction'}
+                                 'telegram_message':'src.extension.TelegramMessageAction',
+                                 'email_notification':'src.extension.EmailNotificationAction'}
         self.logger = get_logger()
 
     def __process_action(self, action: Action):

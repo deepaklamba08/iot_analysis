@@ -45,3 +45,14 @@ class TelegramMessageAction(ActionTemplate):
             raise Exception('error occurred while sending telegram message', ex)
 
         self.logger.debug('exiting : TelegramMessageAction.call()')
+
+
+class EmailNotificationAction(ActionTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def call(self, **kwargs):
+        self.logger.debug('executing : EmailNotificationAction.call()')
+        # add handling code
+        self.logger.debug('exiting : EmailNotificationAction.call()')
