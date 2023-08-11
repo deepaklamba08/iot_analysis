@@ -1,8 +1,9 @@
 from src.models import DataBag, SourceTemplate, TransformationTemplate, ActionTemplate
 import clickhouse_connect
 import json
-from src.utils import get_logger, get_credentials
+from src.utils import get_logger, get_credentials, replace_placeholders
 import csv
+from src.models import RuntimeContext
 
 
 class ClickHouseSource(SourceTemplate):
@@ -13,15 +14,39 @@ class ClickHouseSource(SourceTemplate):
     def name(self) -> str:
         return 'ClickHouseSource'
 
+    @staticmethod
+    def __map_row(result_row, column_names: list) -> dict:
+        data = {}
+        for index, value in enumerate(column_names):
+            data[value] = result_row[index]
+        return data
+
+    @staticmethod
+    def __get_query(query_source: str, value: str, runtime_context: RuntimeContext) -> str:
+        if query_source == 'sql':
+            return value
+        elif query_source == 'file':
+            with open(value, 'r') as stream:
+                query_str = '\n'.join(stream.readlines())
+                return replace_placeholders(raw_data=query_str, parameters=runtime_context.parameters)
+        else:
+            raise Exception(f'query source - {query_source} not supported')
+
     def load(self, **kwargs) -> DataBag:
         self.logger.debug('executing : ClickHouseSource.load()')
         credentials = get_credentials(kwargs['credential_provider'])
         client = clickhouse_connect.get_client(
             host=credentials['host'], port=credentials['port'], username=credentials['user'],
             password=credentials['password'])
-        result = client.query(kwargs['query'])
+        result = client.query(
+            ClickHouseSource.__get_query(query_source=kwargs.get('query_source', 'sql'),
+                                         value=kwargs['query'],
+                                         runtime_context=kwargs['runtime_context']))
+        column_names = result.column_names
+        data_list = list(
+            map(lambda result_row: ClickHouseSource.__map_row(result_row, column_names), result.result_rows))
         self.logger.debug('exiting : ClickHouseSource.load()')
-        return DataBag(name='clickhouse_databag', provider=self.name(), data=result.result_rows)
+        return DataBag(name='clickhouse_databag', provider=self.name(), data=data_list)
 
 
 class JsonSource(SourceTemplate):

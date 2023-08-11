@@ -31,12 +31,13 @@ class Processor(ABC):
 
 class SourceProcessor(Processor):
 
-    def __init__(self, sources: list):
+    def __init__(self, sources: list, runtime_context: RuntimeContext):
         self.sources = sources
         self.source_providers = {'click_house': 'src.custom.ClickHouseSource',
                                  'json': 'src.custom.JsonSource',
                                  'csv': 'src.custom.CsvSource'}
         self.logger = get_logger()
+        self.runtime_context = runtime_context
 
     def __process_source(self, source: Source):
         self.logger.debug(f'processing source - {source.name}')
@@ -50,6 +51,7 @@ class SourceProcessor(Processor):
         source_provider = load_module(provider)
         if isinstance(source_provider, SourceTemplate):
             parameters = copy.copy(source.config)
+            parameters['runtime_context'] = self.runtime_context
             return source_provider.load(**parameters)
         else:
             raise Exception(f'invalid provider - {provider}, expected a provider of type SourceTemplate')
@@ -67,11 +69,13 @@ class SourceProcessor(Processor):
 
 class TransformationProcessor(Processor):
 
-    def __init__(self, transformations: list, sources_data: dict):
+    def __init__(self, transformations: list, sources_data: dict, runtime_context: RuntimeContext):
         self.transformations = transformations
         self.sources_data = sources_data
-        self.transformation_providers = {'dummy_transformation': 'src.custom.DummyTransformation'}
+        self.transformation_providers = {'dummy_transformation': 'src.custom.DummyTransformation',
+                                         'message_format_transformation': 'src.extension.MessageFormatterTransformation'}
         self.logger = get_logger()
+        self.runtime_context = runtime_context
 
     def __process_transformation(self, transformation: Transformation, previous_transformation_data: dict):
         self.logger.debug(f'processing transformation - {transformation.name}')
@@ -106,13 +110,14 @@ class TransformationProcessor(Processor):
 
 class ActionProcessor(Processor):
 
-    def __init__(self, actions: list, data_dict: dict):
+    def __init__(self, actions: list, data_dict: dict, runtime_context: RuntimeContext):
         self.actions = actions
         self.data_dict = data_dict
         self.action_providers = {'log_data': 'src.custom.LogDataAction',
-                                 'telegram_message':'src.extension.TelegramMessageAction',
-                                 'email_notification':'src.extension.EmailNotificationAction'}
+                                 'telegram_message': 'src.extension.TelegramMessageAction',
+                                 'email_notification': 'src.extension.EmailNotificationAction'}
         self.logger = get_logger()
+        self.runtime_context = runtime_context
 
     def __process_action(self, action: Action):
         self.logger.debug(f'processing action - {action.name}')
@@ -144,22 +149,28 @@ class ActionProcessor(Processor):
 
 class ApplicationProcessor(Processor):
 
-    def __init__(self, application: Application):
+    def __init__(self, application: Application, runtime_context: RuntimeContext):
         self.application = application
         self.logger = get_logger()
+        self.runtime_context = runtime_context
 
     def process(self) -> ProcessResult:
         self.logger.debug('executing : ApplicationProcessor.process()')
         self.logger.debug('processing sources ...')
-        execution_result = SourceProcessor(self.application.sources).run()
+        execution_result = SourceProcessor(sources=self.application.sources,
+                                           runtime_context=self.runtime_context).run()
         data_dict = {'sources_data': execution_result.data}
         if execution_result.status:
             self.logger.debug('processing transformations ...')
-            execution_result = TransformationProcessor(self.application.transformations, execution_result.data).run()
+            execution_result = TransformationProcessor(transformations=self.application.transformations,
+                                                       sources_data=execution_result.data,
+                                                       runtime_context=self.runtime_context).run()
             data_dict['transformation_data'] = execution_result.data
             if execution_result.status:
                 self.logger.debug('processing actions ...')
-                execution_result = ActionProcessor(self.application.actions, data_dict).run()
+                execution_result = ActionProcessor(actions=self.application.actions,
+                                                   data_dict=data_dict,
+                                                   runtime_context=self.runtime_context).run()
         self.logger.debug('exiting : ApplicationProcessor.process()')
         return execution_result
 
@@ -177,7 +188,7 @@ class Orchestrator:
             self.logger.error(f'application not found by id - {context.application_id()}')
             raise Exception(f'application not found by id - {context.application_id()}')
 
-        process_result = ApplicationProcessor(application).run()
+        process_result = ApplicationProcessor(application=application, runtime_context=context).run()
         if not process_result.status:
             self.logger.error(f'execution failed with error - {process_result.message}')
             raise Exception(f'execution failed with error - {process_result.message}')

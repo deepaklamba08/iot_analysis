@@ -23,7 +23,9 @@ class SimpleCredentialProvider(CredentialProvider):
 class EnvironmentVariableCredentialProvider(CredentialProvider):
 
     def lookup(self, config: dict) -> dict:
-        variables = config['variables']
+        variables = config.get('variables')
+        if not variables:
+            raise Exception('no variables provided for lookup')
         env_variables = {}
         os_env_variables = os.environ.items()
         for variable_name in variables.keys():
@@ -57,3 +59,9 @@ def load_module(module_name: str):
     module_name, class_name = module_name.rsplit(".", 1)
     module_class = getattr(importlib.import_module(module_name), class_name)
     return module_class()
+
+
+def replace_placeholders(raw_data: str, parameters: dict) -> str:
+    for key, value in parameters.items():
+        raw_data = raw_data.replace('${' + key + '}', f'{value}')
+    return raw_data

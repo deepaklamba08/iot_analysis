@@ -1,6 +1,6 @@
 import requests
 
-from src.models import ActionTemplate
+from src.models import DataBag, TransformationTemplate, ActionTemplate
 from src.utils import get_logger, get_credentials
 
 
@@ -56,3 +56,37 @@ class EmailNotificationAction(ActionTemplate):
         self.logger.debug('executing : EmailNotificationAction.call()')
         # add handling code
         self.logger.debug('exiting : EmailNotificationAction.call()')
+
+
+class MessageFormatterTransformation(TransformationTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'MessageFormatterTransformation'
+
+    @staticmethod
+    def __format_message(message_fields: dict, data: dict, message_title: str) -> str:
+        message = '\n'.join(
+            list(map(lambda key: f"{message_fields.get(key)} - {data.get(key)}", message_fields.keys())))
+        return {'message': f'{message_title}\n{message}'}
+
+    def execute(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : MessageFormatterTransformation.execute()')
+        parameters = kwargs
+        message_source_type = parameters.get('message_source_type')
+        message_source_name = parameters.get('message_source_name')
+
+        if message_source_type == 'source':
+            message_data = parameters['sources_data'][message_source_name]
+        elif message_source_type == 'transformation':
+            message_data = parameters['previous_data'][message_source_name]
+        else:
+            raise Exception(f'invalid message_source_type - {message_source_type}')
+        message_fields = kwargs.get('message_fields')
+        formatted_messages = list(
+            map(lambda data_point: MessageFormatterTransformation.__format_message(
+                message_fields=message_fields, data=data_point,
+                message_title=kwargs.get('message_title')), message_data.data))
+        return DataBag(name='dummy_databag', provider=self.name(), data=formatted_messages)

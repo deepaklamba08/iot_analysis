@@ -1,6 +1,6 @@
 from src.models import Application, Source, Transformation, Action
 import json
-from src.utils import get_logger
+from src.utils import get_logger, replace_placeholders
 
 
 class ApplicationStore:
@@ -20,17 +20,13 @@ class ApplicationStore:
         self.logger.debug(f'exiting : ApplicationStore.lookup_application()')
         return self.applications.get(application_id)
 
-    def __replace_placeholders(self, raw_data):
-        for key, value in self.parameters.items():
-            raw_data = raw_data.replace('${' + key + '}', f'{value}')
-        return raw_data
-
     def __load_applications(self):
         if not self.config_file:
             raise Exception(f'config file is invalid - {self.config_file}')
         self.applications: dict = {}
         with open(self.config_file, 'r') as data_stream:
-            config_str = self.__replace_placeholders('\n'.join(data_stream.readlines()))
+            config_str = replace_placeholders(raw_data='\n'.join(data_stream.readlines()),
+                                              parameters=self.parameters)
             raw_data_list = json.loads(config_str)
             for raw_data in raw_data_list:
                 app = ApplicationStore.__parse_application(raw_data)
