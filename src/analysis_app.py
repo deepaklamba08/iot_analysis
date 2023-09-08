@@ -1,7 +1,11 @@
+import os
+import sys
+
+sys.path.append(os.environ['PATH_TO_APP'])
+
 from src.processor import Orchestrator
 from src.models import RuntimeContext
 from src.store import ApplicationStore
-import sys
 from src.utils import get_logger
 
 
