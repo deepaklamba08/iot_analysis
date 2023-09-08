@@ -115,7 +115,8 @@ class ActionProcessor(Processor):
         self.data_dict = data_dict
         self.action_providers = {'log_data': 'src.custom.LogDataAction',
                                  'telegram_message': 'src.extension.TelegramMessageAction',
-                                 'email_notification': 'src.extension.EmailNotificationAction'}
+                                 'email_notification': 'src.extension.EmailNotificationAction',
+                                 'json_sink':'src.custom.JsonSinkAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 

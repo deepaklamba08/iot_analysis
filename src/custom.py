@@ -4,6 +4,7 @@ import json
 from src.utils import get_logger, get_credentials, replace_placeholders
 import csv
 from src.models import RuntimeContext
+from abc import ABC, abstractmethod
 
 
 class ClickHouseSource(SourceTemplate):
@@ -120,3 +121,42 @@ class LogDataAction(ActionTemplate):
             LogDataAction.__log_data(data.get('transformation_data'))
 
         self.logger.debug('exiting : LogDataAction.call()')
+
+
+class DataSinkBaseAction(ActionTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    @abstractmethod
+    def sink(self, parameters: dict, databag: DataBag):
+        pass
+
+    def call(self, **kwargs):
+        self.logger.debug('executing : DataSinkBaseAction.call()')
+        source_type = kwargs.get('source_type')
+        source_name = kwargs.get('source_name')
+
+        if source_type == 'source':
+            databag = kwargs['data']['sources_data'][source_name]
+        elif source_type == 'transformation':
+            databag = kwargs['data']['transformation_data'][source_name]
+        else:
+            raise Exception(f'invalid source_type - {source_type}')
+        write_mode = kwargs.get('save_mode', 'overwrite')
+        self.sink(parameters=kwargs, databag=databag)
+        self.logger.debug('executing : DataSinkBaseAction.call()')
+
+
+class JsonSinkAction(DataSinkBaseAction):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def sink(self, parameters: dict, databag: DataBag):
+        self.logger.debug('executing : JsonSinkAction.sink()')
+        json_object = json.dumps(databag.data, indent=4)
+
+        with open(parameters['file_path'], "w") as outfile:
+            outfile.write(json_object)
+        self.logger.debug('executing : JsonSinkAction.sink()')
