@@ -60,8 +60,11 @@ class SourceProcessor(Processor):
         self.logger.debug('executing : SourceProcessor.process()')
         data_dict = {}
         for source in self.sources:
-            result = self.__process_source(source)
-            data_dict[source.name] = result
+            if source.status:
+                result = self.__process_source(source)
+                data_dict[source.name] = result
+            else:
+                self.logger.debug(f'skipping source {source} ...')
 
         self.logger.debug('executing : SourceProcessor.process()')
         return ProcessResult(True, 'success', data_dict)
@@ -101,8 +104,11 @@ class TransformationProcessor(Processor):
         self.logger.debug('executing : TransformationProcessor.process()')
         data_dict = {}
         for transformation in self.transformations:
-            result = self.__process_transformation(transformation, data_dict)
-            data_dict[transformation.name] = result
+            if transformation.status:
+                result = self.__process_transformation(transformation, data_dict)
+                data_dict[transformation.name] = result
+            else:
+                self.logger.debug(f'skipping transformation {transformation} ...')
 
         self.logger.debug('exiting : TransformationProcessor.process()')
         return ProcessResult(True, 'success', data_dict)
@@ -116,7 +122,8 @@ class ActionProcessor(Processor):
         self.action_providers = {'log_data': 'src.custom.LogDataAction',
                                  'telegram_message': 'src.extension.TelegramMessageAction',
                                  'email_notification': 'src.extension.EmailNotificationAction',
-                                 'json_sink':'src.custom.JsonSinkAction'}
+                                 'json_sink': 'src.custom.JsonSinkAction',
+                                 'csv_sink': 'src.custom.CSVSinkAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 
@@ -141,9 +148,11 @@ class ActionProcessor(Processor):
         self.logger.debug('executing : ActionProcessor.process()')
         data_dict = {}
         for action in self.actions:
-            result = self.__process_action(action)
-            data_dict[action.name] = result
-
+            if action.status:
+                result = self.__process_action(action)
+                data_dict[action.name] = result
+            else:
+                self.logger.debug(f'skipping action {action} ...')
         self.logger.debug('exiting : ActionProcessor.process()')
         return ProcessResult(True, 'success', data_dict)
 
@@ -157,6 +166,11 @@ class ApplicationProcessor(Processor):
 
     def process(self) -> ProcessResult:
         self.logger.debug('executing : ApplicationProcessor.process()')
+
+        if not self.application.status:
+            self.logger.error(f'application id - {self.application.application_id()} is disabled')
+            return ProcessResult(False, f'application id - {self.application.application_id()} is disabled', None)
+
         self.logger.debug('processing sources ...')
         execution_result = SourceProcessor(sources=self.application.sources,
                                            runtime_context=self.runtime_context).run()

@@ -160,3 +160,19 @@ class JsonSinkAction(DataSinkBaseAction):
         with open(parameters['file_path'], "w") as outfile:
             outfile.write(json_object)
         self.logger.debug('executing : JsonSinkAction.sink()')
+
+
+class CSVSinkAction(DataSinkBaseAction):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def sink(self, parameters: dict, databag: DataBag):
+        self.logger.debug('executing : CSVSinkAction.sink()')
+        csv_headers = databag.data[0].keys()
+        with open(parameters['file_path'], "w") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=csv_headers)
+            writer.writeheader()
+            writer.writerows(databag.data)
+
+        self.logger.debug('executing : CSVSinkAction.sink()')
