@@ -1,19 +1,44 @@
 #!/usr/bin/bash
 CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
+LOG_FILE_PATH="../logs/analysis.log"
 source set_env.sh
 log_message() {
   LEVEL=$1
   MESSAGE=$2
-  echo "[$LEVEL] [$CURRENT_DATETIME] [$MESSAGE]"
+  if [ "$LEVEL" = "ERROR" ]; then
+    echo -e "\033[0;31m[$LEVEL] [$CURRENT_DATETIME] [$MESSAGE]"
+  else
+    echo "[$LEVEL] [$CURRENT_DATETIME] [$MESSAGE]"
+    echo "[$LEVEL] [$CURRENT_DATETIME] [$MESSAGE]" >> $LOG_FILE_PATH
+  fi
 }
 
 print_usage(){
   log_message "INFO" "Usage"
-  echo "----------------------------------------------------------------------"
-  echo "-id or -app_id          : Application id"
-  echo "-cfg or -config_file    : Configuration file path"
-  echo "----------------------------------------------------------------------"
+  echo "+-------------------------Analysis App Parameters----------------------+"
+  echo "| -id or -app_id          : Application id                             |"
+  echo "| -cfg or -config_file    : Configuration file path                    |"
+  echo "| -su or -submitter       : Application runner                         |"
+  echo "| Any key value pair      : Key value pair input to the App            |"
+  echo "+----------------------------------------------------------------------+"
 }
+
+set_parameters_if_absent(){
+  DEFAULT_PARAMETERS=(APP_SUBMITTER)
+  for parameter_name in "${DEFAULT_PARAMETERS[@]}"
+  do
+    parameter_value="${!parameter_name}"
+    if [[ -z "$parameter_value" ]];
+    then
+      if [[ "$parameter_name" = "APP_SUBMITTER" ]]
+      then
+        APP_SUBMITTER=`whoami`
+        log_message "INFO" "Parameter $parameter_name is not set, setting default value to $APP_SUBMITTER"
+      fi
+    fi
+  done
+}
+
 
 validate_parameters(){
   MANDATORY_PARAMETERS=(CONFIG_FILE_PATH APP_ID PYTHON_HOME)
@@ -23,6 +48,8 @@ validate_parameters(){
     if [[ -z "$parameter_value" ]];
     then
       log_message "ERROR" "Parameter $parameter_name is invalid or not set"
+      log_message "INFO" "Please refer below menu"
+      print_usage
       exit 1
     fi
   done
@@ -52,6 +79,13 @@ parse_cli() {
     print_usage
     exit 1
   fi
+
+  if [[ "${CLI_ARRAY[0]}" = "help" || "${CLI_ARRAY[0]}" = "-help" || "${CLI_ARRAY[0]}" = "-h"   ]]
+  then
+    print_usage
+    exit 1
+  fi
+
   TOTAL_PAIRS=$((CLI_COUNT % 2))
 
   if [ $TOTAL_PAIRS -ne 0 ]
@@ -78,6 +112,12 @@ parse_cli() {
       -cfg)
         CONFIG_FILE_PATH=${CLI_ARRAY[counter]}
       ;;
+      -submitter)
+        APP_SUBMITTER=${CLI_ARRAY[counter]}
+      ;;
+      -su)
+        APP_SUBMITTER=${CLI_ARRAY[counter]}
+      ;;
       -h)
         print_usage
         exit 1
@@ -95,7 +135,7 @@ parse_cli() {
 
 run_app(){
   log_message "INFO" "Running app"
-  CLI_INPUT_STRING="app_id $APP_ID config_file $CONFIG_FILE_PATH ${GENERIC_PARAMETERS[@]}"
+  CLI_INPUT_STRING="app_id $APP_ID config_file $CONFIG_FILE_PATH submitter $APP_SUBMITTER ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
   SHELL_CMD="$PYTHON_HOME $PYTHON_APP_NAME $CLI_INPUT_STRING"
   log_message "INFO" "Shell cmd - $SHELL_CMD"
@@ -108,12 +148,13 @@ run_app(){
     log_message "INFO" "Exiting run app"
     exit 0
   else
-    log_message "INFO" "App run failed with status code - $APP_RUN_STATUS"
+    log_message "ERROR" "App run failed with status code - $APP_RUN_STATUS"
     exit 1
   fi
 }
 
 parse_cli "$*"
 log_parameters
+set_parameters_if_absent
 validate_parameters
 run_app
