@@ -1,11 +1,13 @@
-from src.models import DataBag, SourceTemplate, TransformationTemplate, ActionTemplate
-import clickhouse_connect
+import csv
 import json
 import os
-from src.utils import get_logger, get_credentials, replace_placeholders
-import csv
+from abc import abstractmethod
+from datetime import datetime
+import clickhouse_connect
+
+from src.models import DataBag, SourceTemplate, TransformationTemplate, ActionTemplate
 from src.models import RuntimeContext
-from abc import ABC, abstractmethod
+from src.utils import get_logger, get_credentials, replace_placeholders
 
 
 class ClickHouseSource(SourceTemplate):
@@ -136,6 +138,11 @@ class DataSinkBaseAction(ActionTemplate):
     def sink(self, parameters: dict, databag: DataBag, save_mode='w'):
         pass
 
+    @staticmethod
+    def get_file_path(parameters: dict, extension: str) -> str:
+        file_name = parameters['file_name']
+        return os.path.join(parameters['file_dir'], f'{file_name}_{int(datetime.now().timestamp() * 1000000)}.{extension}')
+
     def call(self, **kwargs):
         self.logger.debug('executing : DataSinkBaseAction.call()')
         source_type = kwargs.get('source_type')
@@ -148,12 +155,18 @@ class DataSinkBaseAction(ActionTemplate):
         else:
             raise Exception(f'invalid source_type - {source_type}')
         write_mode = kwargs.get('save_mode', 'overwrite')
-        file_path = kwargs['file_path']
+        file_dir = kwargs['file_dir']
         if write_mode == 'overwrite':
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            if os.path.exists(file_dir):
+                import shutil
+                shutil.rmtree(file_dir)
+                os.mkdir(file_dir)
+            else:
+                os.mkdir(file_dir)
             self.sink(parameters=kwargs, databag=databag, save_mode='w')
         elif write_mode == 'append':
+            if not os.path.exists(file_dir):
+                os.mkdir(file_dir)
             self.sink(parameters=kwargs, databag=databag, save_mode='a')
         else:
             raise Exception(f'save mode not supported - {write_mode}')
@@ -170,7 +183,7 @@ class JsonSinkAction(DataSinkBaseAction):
         self.logger.debug('executing : JsonSinkAction.sink()')
         json_object = json.dumps(databag.data, indent=4)
 
-        with open(file=parameters['file_path'], mode=save_mode) as outfile:
+        with open(file=DataSinkBaseAction.get_file_path(parameters, 'json'), mode=save_mode) as outfile:
             outfile.write(json_object)
         self.logger.debug('executing : JsonSinkAction.sink()')
 
@@ -183,7 +196,7 @@ class CSVSinkAction(DataSinkBaseAction):
     def sink(self, parameters: dict, databag: DataBag, save_mode='w'):
         self.logger.debug('executing : CSVSinkAction.sink()')
         csv_headers = databag.data[0].keys()
-        with open(file=parameters['file_path'], mode=save_mode) as csv_file:
+        with open(file=DataSinkBaseAction.get_file_path(parameters, 'csv'), mode=save_mode) as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=csv_headers, delimiter=parameters.get('delimiter', ','))
             writer.writeheader()
             writer.writerows(databag.data)
