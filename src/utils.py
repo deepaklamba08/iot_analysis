@@ -47,7 +47,7 @@ def get_credentials(config: dict) -> dict:
 
 def get_logger(log_file_name='../logs/app.log'):
     logging.basicConfig(filename=log_file_name,
-                        format='%(asctime)s %(message)s',
+                        format='[%(asctime)s] [%(name)s] [%(levelname)s] [%(funcName)s:%(lineno)d] %(message)s',
                         filemode='a')
     logger = logging.getLogger()
 
