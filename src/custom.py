@@ -1,6 +1,7 @@
 from src.models import DataBag, SourceTemplate, TransformationTemplate, ActionTemplate
 import clickhouse_connect
 import json
+import os
 from src.utils import get_logger, get_credentials, replace_placeholders
 import csv
 from src.models import RuntimeContext
@@ -47,7 +48,8 @@ class ClickHouseSource(SourceTemplate):
         data_list = list(
             map(lambda result_row: ClickHouseSource.__map_row(result_row, column_names), result.result_rows))
         self.logger.debug('exiting : ClickHouseSource.load()')
-        return DataBag(name='clickhouse_databag', provider=self.name(), data=data_list)
+        return DataBag(name='clickhouse_databag', provider=self.name(), data=data_list,
+                       metadata={'columns': column_names, 'row_count': result.row_count})
 
 
 class JsonSource(SourceTemplate):
@@ -64,7 +66,8 @@ class JsonSource(SourceTemplate):
         with (open(file_path, 'r')) as data_stream:
             result = json.loads('\n'.join(data_stream.readlines()))
             self.logger.debug('exiting : JsonSource.load()')
-            return DataBag(name='json_databag', provider=self.name(), data=result)
+            return DataBag(name='json_databag', provider=self.name(), data=result,
+                           metadata={'file_path': file_path, 'row_count': len(result)})
 
 
 class CsvSource(SourceTemplate):
@@ -82,7 +85,8 @@ class CsvSource(SourceTemplate):
             csv_file = csv.DictReader(data_stream, delimiter=',', quotechar='|')
             result = list(map(lambda line: line, csv_file))
             self.logger.debug('exiting : CsvSource.load()')
-            return DataBag(name='csv_databag', provider=self.name(), data=result)
+            return DataBag(name='csv_databag', provider=self.name(), data=result,
+                           metadata={'file_path': file_path, 'row_count': len(result)})
 
 
 class DummyTransformation(TransformationTemplate):
@@ -129,7 +133,7 @@ class DataSinkBaseAction(ActionTemplate):
         self.logger = get_logger()
 
     @abstractmethod
-    def sink(self, parameters: dict, databag: DataBag):
+    def sink(self, parameters: dict, databag: DataBag, save_mode='w'):
         pass
 
     def call(self, **kwargs):
@@ -144,7 +148,16 @@ class DataSinkBaseAction(ActionTemplate):
         else:
             raise Exception(f'invalid source_type - {source_type}')
         write_mode = kwargs.get('save_mode', 'overwrite')
-        self.sink(parameters=kwargs, databag=databag)
+        file_path = kwargs['file_path']
+        if write_mode == 'overwrite':
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            self.sink(parameters=kwargs, databag=databag, save_mode='w')
+        elif write_mode == 'append':
+            self.sink(parameters=kwargs, databag=databag, save_mode='a')
+        else:
+            raise Exception(f'save mode not supported - {write_mode}')
+
         self.logger.debug('executing : DataSinkBaseAction.call()')
 
 
@@ -153,11 +166,11 @@ class JsonSinkAction(DataSinkBaseAction):
     def __init__(self):
         self.logger = get_logger()
 
-    def sink(self, parameters: dict, databag: DataBag):
+    def sink(self, parameters: dict, databag: DataBag, save_mode='w'):
         self.logger.debug('executing : JsonSinkAction.sink()')
         json_object = json.dumps(databag.data, indent=4)
 
-        with open(parameters['file_path'], "w") as outfile:
+        with open(file=parameters['file_path'], mode=save_mode) as outfile:
             outfile.write(json_object)
         self.logger.debug('executing : JsonSinkAction.sink()')
 
@@ -167,11 +180,11 @@ class CSVSinkAction(DataSinkBaseAction):
     def __init__(self):
         self.logger = get_logger()
 
-    def sink(self, parameters: dict, databag: DataBag):
+    def sink(self, parameters: dict, databag: DataBag, save_mode='w'):
         self.logger.debug('executing : CSVSinkAction.sink()')
         csv_headers = databag.data[0].keys()
-        with open(parameters['file_path'], "w") as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=csv_headers)
+        with open(file=parameters['file_path'], mode=save_mode) as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=csv_headers, delimiter=parameters.get('delimiter', ','))
             writer.writeheader()
             writer.writerows(databag.data)
 
