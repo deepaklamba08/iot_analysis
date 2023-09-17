@@ -35,7 +35,8 @@ class SourceProcessor(Processor):
         self.sources = sources
         self.source_providers = {'click_house': 'src.custom.ClickHouseSource',
                                  'json': 'src.custom.JsonSource',
-                                 'csv': 'src.custom.CsvSource'}
+                                 'csv': 'src.custom.CsvSource',
+                                 'mongo_db': 'src.custom.MongoDbSource'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 

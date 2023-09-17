@@ -4,6 +4,7 @@ import os
 from abc import abstractmethod
 from datetime import datetime
 import clickhouse_connect
+import pymongo
 
 from src.models import DataBag, SourceTemplate, TransformationTemplate, ActionTemplate
 from src.models import RuntimeContext
@@ -215,3 +216,30 @@ class CSVSinkAction(DataSinkBaseAction):
             writer.writerows(databag.data)
 
         self.logger.debug('executing : CSVSinkAction.sink()')
+
+
+class MongoDbSource(SourceTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'MongoDbSource'
+
+    def load(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : MongoDbSource.load()')
+        credentials = get_credentials(kwargs['credential_provider'])
+        mong_client = pymongo.MongoClient(host=credentials['host'], port=credentials['port'],
+                                          username=credentials['user'], password=credentials['password'])
+
+        database = mong_client.get_database(kwargs['database'])
+        collection = database.get_collection(kwargs['collection'])
+
+        projections = kwargs.get('projections', None)
+        if projections:
+            data_list = collection.find(kwargs.get('filter', {}), projections)
+        else:
+            data_list = collection.find(kwargs.get('filter', {}))
+
+        self.logger.debug('exiting : MongoDbSource.load()')
+        return DataBag(name='mongodb_databag', provider=self.name(), data=data_list, metadata={})
