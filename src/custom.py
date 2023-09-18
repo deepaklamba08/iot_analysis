@@ -278,7 +278,37 @@ class MongoDbSource(SourceTemplate):
                        metadata={})
 
 
-class FieldSelectorTransformation(TransformationTemplate):
+class BaseFieldTransformation(TransformationTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    @abstractmethod
+    def select_or_reject(self, item: dict, fields: list) -> dict:
+        pass
+
+    def execute(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : BaseFieldTransformation.execute()')
+        source_type = kwargs.get('source_type')
+        source_name = kwargs.get('source_name')
+
+        if source_type == 'source':
+            databag = kwargs['sources_data'][source_name]
+        elif source_type == 'transformation':
+            databag = kwargs['transformation_data'][source_name]
+        else:
+            raise Exception(f'invalid source_type - {source_type}')
+
+        fields = kwargs['fields']
+
+        fields = kwargs['fields']
+        output = list(map(lambda item: self.select_or_reject(item, fields), databag.data))
+
+        self.logger.debug('exiting : BaseFieldTransformation.execute()')
+        return DataBag(name='dummy_databag', provider=self.name(), data=output)
+
+
+class FieldSelectorTransformation(BaseFieldTransformation):
 
     def __init__(self):
         self.logger = get_logger()
@@ -286,33 +316,14 @@ class FieldSelectorTransformation(TransformationTemplate):
     def name(self) -> str:
         return 'FieldSelectorTransformation'
 
-    @staticmethod
-    def __select_fields(input_item: dict, fields: list) -> dict:
+    def select_or_reject(self, item: dict, fields: list) -> dict:
         op = {}
         for field in fields:
-            op[field] = input_item.get(field, None)
+            op[field] = item.get(field, None)
         return op
 
-    def execute(self, **kwargs) -> DataBag:
-        self.logger.debug('executing : FieldSelectorTransformation.execute()')
-        source_type = kwargs.get('source_type')
-        source_name = kwargs.get('source_name')
 
-        if source_type == 'source':
-            databag = kwargs['sources_data'][source_name]
-        elif source_type == 'transformation':
-            databag = kwargs['transformation_data'][source_name]
-        else:
-            raise Exception(f'invalid source_type - {source_type}')
-
-        fields = kwargs['fields']
-        output = list(map(lambda item: FieldSelectorTransformation.__select_fields(item, fields), databag.data))
-
-        self.logger.debug('exiting : FieldSelectorTransformation.execute()')
-        return DataBag(name='dummy_databag', provider=self.name(), data=output)
-
-
-class FieldRejectTransformation(TransformationTemplate):
+class FieldRejectTransformation(BaseFieldTransformation):
 
     def __init__(self):
         self.logger = get_logger()
@@ -320,28 +331,9 @@ class FieldRejectTransformation(TransformationTemplate):
     def name(self) -> str:
         return 'FieldRejectTransformation'
 
-    @staticmethod
-    def __select_fields(input_item: dict, fields: list) -> dict:
+    def select_or_reject(self, item: dict, fields: list) -> dict:
         op = {}
-        for key in input_item.keys():
+        for key in item.keys():
             if key not in fields:
-                op[key] = input_item[key]
+                op[key] = item[key]
         return op
-
-    def execute(self, **kwargs) -> DataBag:
-        self.logger.debug('executing : FieldRejectTransformation.execute()')
-        source_type = kwargs.get('source_type')
-        source_name = kwargs.get('source_name')
-
-        if source_type == 'source':
-            databag = kwargs['sources_data'][source_name]
-        elif source_type == 'transformation':
-            databag = kwargs['transformation_data'][source_name]
-        else:
-            raise Exception(f'invalid source_type - {source_type}')
-
-        fields = kwargs['fields']
-        output = list(map(lambda item: FieldRejectTransformation.__select_fields(item, fields), databag.data))
-
-        self.logger.debug('exiting : FieldRejectTransformation.execute()')
-        return DataBag(name='dummy_databag', provider=self.name(), data=output)
