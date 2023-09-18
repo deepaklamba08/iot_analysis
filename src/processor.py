@@ -33,10 +33,10 @@ class SourceProcessor(Processor):
 
     def __init__(self, sources: list, runtime_context: RuntimeContext):
         self.sources = sources
-        self.source_providers = {'click_house': 'src.custom.ClickHouseSource',
-                                 'json': 'src.custom.JsonSource',
-                                 'csv': 'src.custom.CsvSource',
-                                 'mongo_db': 'src.custom.MongoDbSource'}
+        self.source_providers = {'click_house': 'src.sources.ClickHouseSource',
+                                 'json': 'src.sources.JsonSource',
+                                 'csv': 'src.sources.CsvSource',
+                                 'mongo_db': 'src.sources.MongoDbSource'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 
@@ -76,11 +76,11 @@ class TransformationProcessor(Processor):
     def __init__(self, transformations: list, sources_data: dict, runtime_context: RuntimeContext):
         self.transformations = transformations
         self.sources_data = sources_data
-        self.transformation_providers = {'dummy_transformation': 'src.custom.DummyTransformation',
+        self.transformation_providers = {'dummy_transformation': 'src.transformations.DummyTransformation',
                                          'message_format_transformation': 'src.extension.MessageFormatterTransformation',
-                                         'field_selector': 'src.custom.FieldSelectorTransformation',
-                                         'field_reject': 'src.custom.FieldRejectTransformation',
-                                         'add_field':'src.custom.AddConstantFieldTransformation'}
+                                         'field_selector': 'src.transformations.FieldSelectorTransformation',
+                                         'field_reject': 'src.transformations.FieldRejectTransformation',
+                                         'add_field':'src.transformations.AddConstantFieldTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 
@@ -123,11 +123,11 @@ class ActionProcessor(Processor):
     def __init__(self, actions: list, data_dict: dict, runtime_context: RuntimeContext):
         self.actions = actions
         self.data_dict = data_dict
-        self.action_providers = {'log_data': 'src.custom.LogDataAction',
+        self.action_providers = {'log_data': 'src.actions.LogDataAction',
                                  'telegram_message': 'src.extension.TelegramMessageAction',
                                  'email_notification': 'src.extension.EmailNotificationAction',
-                                 'json_sink': 'src.custom.JsonSinkAction',
-                                 'csv_sink': 'src.custom.CSVSinkAction'}
+                                 'json_sink': 'src.actions.JsonSinkAction',
+                                 'csv_sink': 'src.actions.CSVSinkAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 
