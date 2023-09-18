@@ -104,3 +104,32 @@ class AddConstantFieldTransformation(TransformationTemplate):
 
         self.logger.debug('exiting : AddConstantFieldTransformation.execute()')
         return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+
+
+class RenameFieldTransformation(TransformationTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'RenameFieldTransformation'
+
+    @staticmethod
+    def rename_field(item: dict, fields_to_rename: dict) -> dict:
+        op = {}
+        for field in item.keys():
+            if field in fields_to_rename.keys():
+                op[fields_to_rename[field]] = item[field]
+            else:
+                op[field] = item[field]
+        return op
+
+    def execute(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : RenameFieldTransformation.execute()')
+        databag = select_databag(kwargs)
+
+        fields = kwargs['fields']
+        output = list(map(lambda item: RenameFieldTransformation.rename_field(item, fields), databag.data))
+
+        self.logger.debug('exiting : RenameFieldTransformation.execute()')
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)

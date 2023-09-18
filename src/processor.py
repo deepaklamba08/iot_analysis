@@ -80,7 +80,8 @@ class TransformationProcessor(Processor):
                                          'message_format_transformation': 'src.extension.MessageFormatterTransformation',
                                          'field_selector': 'src.transformations.FieldSelectorTransformation',
                                          'field_reject': 'src.transformations.FieldRejectTransformation',
-                                         'add_field':'src.transformations.AddConstantFieldTransformation'}
+                                         'add_field': 'src.transformations.AddConstantFieldTransformation',
+                                         'rename_field': 'src.transformations.RenameFieldTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 
