@@ -229,17 +229,34 @@ class MongoDbSource(SourceTemplate):
     def load(self, **kwargs) -> DataBag:
         self.logger.debug('executing : MongoDbSource.load()')
         credentials = get_credentials(kwargs['credential_provider'])
-        mong_client = pymongo.MongoClient(host=credentials['host'], port=credentials['port'],
-                                          username=credentials['user'], password=credentials['password'])
+        mong_client = pymongo.MongoClient(host=credentials['host'],
+                                          port=credentials['port'],
+                                          username=credentials['user'],
+                                          password=credentials['password'])
 
-        database = mong_client.get_database(kwargs['database'])
-        collection = database.get_collection(kwargs['collection'])
+        database_name = kwargs['database']
+        if database_name not in mong_client.list_database_names():
+            self.logger.error(f'database - {database_name} not found')
+            raise Exception(f'database - {database_name} not found')
 
-        projections = kwargs.get('projections', None)
-        if projections:
-            data_list = collection.find(kwargs.get('filter', {}), projections)
+        database = mong_client.get_database(database_name)
+
+        collection_name = kwargs['collection']
+        if collection_name not in database.list_collection_names():
+            self.logger.error(f'collection - {collection_name} not found')
+            raise Exception(f'collection - {collection_name} not found')
+        collection = database.get_collection(collection_name)
+
+        projection = kwargs.get('projection', None)
+        if projection:
+            data_list = collection.find(filter=kwargs.get('filter', {}),
+                                        projection=projection,
+                                        limit=kwargs.get('limit', 0))
         else:
-            data_list = collection.find(kwargs.get('filter', {}))
+            data_list = collection.find(filter=kwargs.get('filter', {}),
+                                        limit=kwargs.get('limit', 0))
 
         self.logger.debug('exiting : MongoDbSource.load()')
-        return DataBag(name='mongodb_databag', provider=self.name(), data=data_list, metadata={})
+        return DataBag(name='mongodb_databag', provider=self.name(),
+                       data=list(map(lambda item: item, data_list)),
+                       metadata={})
