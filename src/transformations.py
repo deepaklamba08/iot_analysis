@@ -133,3 +133,35 @@ class RenameFieldTransformation(TransformationTemplate):
 
         self.logger.debug('exiting : RenameFieldTransformation.execute()')
         return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+
+
+class ConcatFieldTransformation(TransformationTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'ConcatFieldTransformation'
+
+    @staticmethod
+    def concat_field(item: dict, source_fields: list, output_field_name: str, seperator: str) -> dict:
+        source_values = list(map(lambda field: item.get(field), source_fields))
+        if None in source_values:
+            item[output_field_name] = None
+        else:
+            item[output_field_name] = seperator.join(source_values)
+        return item
+
+    def execute(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : ConcatFieldTransformation.execute()')
+        databag = select_databag(kwargs)
+
+        fields = kwargs['fields']
+        output_field_name = kwargs['output_field']
+        seperator = kwargs.get('seperator', '~')
+        output = list(
+            map(lambda item: ConcatFieldTransformation.concat_field(item, fields, output_field_name, seperator),
+                databag.data))
+
+        self.logger.debug('exiting : ConcatFieldTransformation.execute()')
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
