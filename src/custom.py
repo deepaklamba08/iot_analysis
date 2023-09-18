@@ -111,21 +111,37 @@ class LogDataAction(ActionTemplate):
         self.logger = get_logger()
 
     @staticmethod
-    def __log_data(data):
+    def __log_data(data: dict):
         if data:
             for key in data:
-                databag = data[key]
-                print('-----------------------------------------------------------')
-                print(databag)
-                print(f'metadata - {databag.metadata}')
-                print(f'data - {databag.data}')
+                LogDataAction.__log_databag(data[key])
+
+    @staticmethod
+    def __log_databag(databag: DataBag):
+        print('-----------------------------------------------------------')
+        print(databag)
+        print(f'metadata - {databag.metadata}')
+        print(f'data - {databag.data}')
 
     def call(self, **kwargs):
         self.logger.debug('executing : LogDataAction.call()')
         data = kwargs.get('data')
-        if data:
+        sources_log = kwargs.get('sources_to_log')
+        tr_log = kwargs.get('transformation_to_log')
+
+        if sources_log is None and tr_log is None:
             LogDataAction.__log_data(data.get('sources_data'))
             LogDataAction.__log_data(data.get('transformation_data'))
+        elif sources_log is not None:
+            for sources_name in sources_log:
+                source_data = data.get('sources_data').get(sources_name)
+                LogDataAction.__log_databag(source_data)
+        elif tr_log is not None:
+            for target_name in tr_log:
+                target_data = data.get('transformation_data').get(target_name)
+                LogDataAction.__log_databag(target_data)
+        else:
+            pass
 
         self.logger.debug('exiting : LogDataAction.call()')
 
