@@ -79,7 +79,8 @@ class TransformationProcessor(Processor):
         self.transformation_providers = {'dummy_transformation': 'src.custom.DummyTransformation',
                                          'message_format_transformation': 'src.extension.MessageFormatterTransformation',
                                          'field_selector': 'src.custom.FieldSelectorTransformation',
-                                         'field_reject': 'src.custom.FieldRejectTransformation'}
+                                         'field_reject': 'src.custom.FieldRejectTransformation',
+                                         'add_field':'src.custom.AddConstantFieldTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
 

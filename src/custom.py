@@ -295,17 +295,15 @@ class BaseFieldTransformation(TransformationTemplate):
         if source_type == 'source':
             databag = kwargs['sources_data'][source_name]
         elif source_type == 'transformation':
-            databag = kwargs['transformation_data'][source_name]
+            databag = kwargs['previous_data'][source_name]
         else:
             raise Exception(f'invalid source_type - {source_type}')
-
-        fields = kwargs['fields']
 
         fields = kwargs['fields']
         output = list(map(lambda item: self.select_or_reject(item, fields), databag.data))
 
         self.logger.debug('exiting : BaseFieldTransformation.execute()')
-        return DataBag(name='dummy_databag', provider=self.name(), data=output)
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
 
 
 class FieldSelectorTransformation(BaseFieldTransformation):
@@ -337,3 +335,37 @@ class FieldRejectTransformation(BaseFieldTransformation):
             if key not in fields:
                 op[key] = item[key]
         return op
+
+
+class AddConstantFieldTransformation(TransformationTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'AddConstantFieldTransformation'
+
+    @staticmethod
+    def add_field(item: dict, fields_to_add: list) -> dict:
+        for field in fields_to_add:
+            for key in field:
+                item[key] = field[key]
+        return item
+
+    def execute(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : AddConstantFieldTransformation.execute()')
+        source_type = kwargs.get('source_type')
+        source_name = kwargs.get('source_name')
+
+        if source_type == 'source':
+            databag = kwargs['sources_data'][source_name]
+        elif source_type == 'transformation':
+            databag = kwargs['previous_data'][source_name]
+        else:
+            raise Exception(f'invalid source_type - {source_type}')
+
+        fields = kwargs['fields']
+        output = list(map(lambda item: AddConstantFieldTransformation.add_field(item, fields), databag.data))
+
+        self.logger.debug('exiting : AddConstantFieldTransformation.execute()')
+        return DataBag(name='dummy_databag', provider=self.name(), data=output)
