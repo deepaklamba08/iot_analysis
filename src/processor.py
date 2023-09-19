@@ -2,7 +2,7 @@ import copy
 from abc import ABC, abstractmethod
 
 from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
-    TransformationTemplate, ActionTemplate
+    TransformationTemplate, ActionTemplate, DatabagRegistry
 from src.store import ApplicationStore
 from src.utils import get_logger
 from src.utils import load_module
@@ -10,10 +10,9 @@ from src.utils import load_module
 
 class ProcessResult:
 
-    def __init__(self, status: bool, message: str, data: dict):
+    def __init__(self, status: bool, message: str):
         self.status = status
         self.message = message
-        self.data = data
 
 
 class Processor(ABC):
@@ -26,12 +25,12 @@ class Processor(ABC):
         try:
             return self.process()
         except Exception as ex:
-            return ProcessResult(False, f'error occurred while executing processor, cause - {ex}', None)
+            return ProcessResult(False, f'error occurred while executing processor, cause - {ex}')
 
 
 class SourceProcessor(Processor):
 
-    def __init__(self, sources: list, runtime_context: RuntimeContext):
+    def __init__(self, sources: list, runtime_context: RuntimeContext, databag_registry: DatabagRegistry):
         self.sources = sources
         self.source_providers = {'click_house': 'src.sources.ClickHouseSource',
                                  'json': 'src.sources.JsonSource',
@@ -39,6 +38,7 @@ class SourceProcessor(Processor):
                                  'mongo_db': 'src.sources.MongoDbSource'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
+        self.databag_registry = databag_registry
 
     def __process_source(self, source: Source):
         self.logger.debug(f'processing source - {source.name}')
@@ -49,7 +49,7 @@ class SourceProcessor(Processor):
         if not provider:
             raise Exception(f'source type not supported- {source.source_type}')
 
-        source_provider = load_module(provider)
+        source_provider = load_module(module_name=provider)
         if isinstance(source_provider, SourceTemplate):
             parameters = copy.copy(source.config)
             parameters['runtime_context'] = self.runtime_context
@@ -59,34 +59,35 @@ class SourceProcessor(Processor):
 
     def process(self) -> ProcessResult:
         self.logger.debug('executing : SourceProcessor.process()')
-        data_dict = {}
         for source in self.sources:
             if source.status:
                 result = self.__process_source(source)
-                data_dict[source.name] = result
+                self.databag_registry.source_databag(name=source.name, databag=result)
             else:
                 self.logger.debug(f'skipping source {source} ...')
 
         self.logger.debug('executing : SourceProcessor.process()')
-        return ProcessResult(True, 'success', data_dict)
+        return ProcessResult(True, 'success')
 
 
 class TransformationProcessor(Processor):
 
-    def __init__(self, transformations: list, sources_data: dict, runtime_context: RuntimeContext):
+    def __init__(self, transformations: list,
+                 runtime_context: RuntimeContext,
+                 databag_registry: DatabagRegistry):
         self.transformations = transformations
-        self.sources_data = sources_data
         self.transformation_providers = {'dummy_transformation': 'src.transformations.DummyTransformation',
                                          'message_format_transformation': 'src.extension.MessageFormatterTransformation',
                                          'field_selector': 'src.transformations.FieldSelectorTransformation',
                                          'field_reject': 'src.transformations.FieldRejectTransformation',
                                          'add_field': 'src.transformations.AddConstantFieldTransformation',
                                          'rename_field': 'src.transformations.RenameFieldTransformation',
-                                         'concat_field':'src.transformations.ConcatFieldTransformation'}
+                                         'concat_field': 'src.transformations.ConcatFieldTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
+        self.databag_registry = databag_registry
 
-    def __process_transformation(self, transformation: Transformation, previous_transformation_data: dict):
+    def __process_transformation(self, transformation: Transformation):
         self.logger.debug(f'processing transformation - {transformation.name}')
         provider = self.transformation_providers.get(transformation.transformation_type)
         if not provider and transformation.transformation_type == 'custom':
@@ -96,33 +97,31 @@ class TransformationProcessor(Processor):
             self.logger.error(f'transformation type not supported- {transformation.transformation_type}')
             raise Exception(f'transformation type not supported- {transformation.transformation_type}')
 
-        transformation_provider = load_module(provider)
+        transformation_provider = load_module(module_name=provider, databag_registry=self.databag_registry)
         if isinstance(transformation_provider, TransformationTemplate):
             tr_config = copy.copy(transformation.config)
-            tr_config['sources_data'] = self.sources_data
-            tr_config['previous_data'] = previous_transformation_data
-
             return transformation_provider.execute(**tr_config)
         else:
             raise Exception(f'invalid provider - {provider}, expected a provider of type SourceTemplate')
 
     def process(self) -> ProcessResult:
         self.logger.debug('executing : TransformationProcessor.process()')
-        data_dict = {}
         for transformation in self.transformations:
             if transformation.status:
-                result = self.__process_transformation(transformation, data_dict)
-                data_dict[transformation.name] = result
+                result = self.__process_transformation(transformation)
+                # data_dict[transformation.name] = result
+                self.databag_registry.transformation_databag(name=transformation.name, databag=result)
             else:
                 self.logger.debug(f'skipping transformation {transformation} ...')
 
         self.logger.debug('exiting : TransformationProcessor.process()')
-        return ProcessResult(True, 'success', data_dict)
+        return ProcessResult(True, 'success')
 
 
 class ActionProcessor(Processor):
 
-    def __init__(self, actions: list, data_dict: dict, runtime_context: RuntimeContext):
+    def __init__(self, actions: list, data_dict: dict, runtime_context: RuntimeContext,
+                 databag_registry: DatabagRegistry):
         self.actions = actions
         self.data_dict = data_dict
         self.action_providers = {'log_data': 'src.actions.LogDataAction',
@@ -132,6 +131,7 @@ class ActionProcessor(Processor):
                                  'csv_sink': 'src.actions.CSVSinkAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
+        self.databag_registry = databag_registry
 
     def __process_action(self, action: Action):
         self.logger.debug(f'processing action - {action.name}')
@@ -142,10 +142,9 @@ class ActionProcessor(Processor):
         if not provider:
             raise Exception(f'action type not supported- {action.action_type}')
 
-        action_provider = load_module(provider)
+        action_provider = load_module(module_name=provider, databag_registry=self.databag_registry)
         if isinstance(action_provider, ActionTemplate):
             action_config = copy.copy(action.config)
-            action_config['data'] = self.data_dict
             action_provider.call(**action_config)
         else:
             raise Exception(f'invalid provider - {provider}, expected a provider of type SourceTemplate')
@@ -160,7 +159,7 @@ class ActionProcessor(Processor):
             else:
                 self.logger.debug(f'skipping action {action} ...')
         self.logger.debug('exiting : ActionProcessor.process()')
-        return ProcessResult(True, 'success', data_dict)
+        return ProcessResult(True, 'success')
 
 
 class ApplicationProcessor(Processor):
@@ -169,29 +168,30 @@ class ApplicationProcessor(Processor):
         self.application = application
         self.logger = get_logger()
         self.runtime_context = runtime_context
+        self.databag_registry = DatabagRegistry()
 
     def process(self) -> ProcessResult:
         self.logger.debug('executing : ApplicationProcessor.process()')
 
         if not self.application.status:
             self.logger.error(f'application id - {self.application.application_id()} is disabled')
-            return ProcessResult(False, f'application id - {self.application.application_id()} is disabled', None)
+            return ProcessResult(False, f'application id - {self.application.application_id()} is disabled')
 
         self.logger.debug('processing sources ...')
         execution_result = SourceProcessor(sources=self.application.sources,
-                                           runtime_context=self.runtime_context).run()
-        data_dict = {'sources_data': execution_result.data}
+                                           runtime_context=self.runtime_context,
+                                           databag_registry=self.databag_registry).run()
         if execution_result.status:
             self.logger.debug('processing transformations ...')
             execution_result = TransformationProcessor(transformations=self.application.transformations,
-                                                       sources_data=execution_result.data,
-                                                       runtime_context=self.runtime_context).run()
-            data_dict['transformation_data'] = execution_result.data
+                                                       runtime_context=self.runtime_context,
+                                                       databag_registry=self.databag_registry).run()
             if execution_result.status:
                 self.logger.debug('processing actions ...')
                 execution_result = ActionProcessor(actions=self.application.actions,
-                                                   data_dict=data_dict,
-                                                   runtime_context=self.runtime_context).run()
+                                                   data_dict={},
+                                                   runtime_context=self.runtime_context,
+                                                   databag_registry=self.databag_registry).run()
         self.logger.debug('exiting : ApplicationProcessor.process()')
         return execution_result
 

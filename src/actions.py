@@ -4,14 +4,15 @@ import os
 from abc import abstractmethod
 from datetime import datetime
 
-from src.models import DataBag, ActionTemplate
+from src.models import DataBag, ActionTemplate, DatabagRegistry
 from src.utils import get_logger
 
 
 class LogDataAction(ActionTemplate):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     @staticmethod
     def __log_data(data: dict):
@@ -28,20 +29,19 @@ class LogDataAction(ActionTemplate):
 
     def call(self, **kwargs):
         self.logger.debug('executing : LogDataAction.call()')
-        data = kwargs.get('data')
         sources_log = kwargs.get('sources_to_log')
         tr_log = kwargs.get('transformation_to_log')
 
         if sources_log is None and tr_log is None:
-            LogDataAction.__log_data(data.get('sources_data'))
-            LogDataAction.__log_data(data.get('transformation_data'))
+            LogDataAction.__log_data(self.databag_registry.all_sources_databags())
+            LogDataAction.__log_data(self.databag_registry.all_transformation_databags())
         elif sources_log is not None:
             for sources_name in sources_log:
-                source_data = data.get('sources_data').get(sources_name)
+                source_data = self.databag_registry.get_databag(name=sources_name, is_source=True)
                 LogDataAction.__log_databag(source_data)
         elif tr_log is not None:
             for target_name in tr_log:
-                target_data = data.get('transformation_data').get(target_name)
+                target_data = self.databag_registry.get_databag(name=target_name, is_source=False)
                 LogDataAction.__log_databag(target_data)
         else:
             pass
@@ -51,8 +51,9 @@ class LogDataAction(ActionTemplate):
 
 class DataSinkBaseAction(ActionTemplate):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     @abstractmethod
     def get_file_extension(self) -> str:
@@ -73,9 +74,9 @@ class DataSinkBaseAction(ActionTemplate):
         source_name = kwargs.get('source_name')
 
         if source_type == 'source':
-            databag = kwargs['data']['sources_data'][source_name]
+            databag = self.databag_registry.get_databag(name=source_name, is_source=True)
         elif source_type == 'transformation':
-            databag = kwargs['data']['transformation_data'][source_name]
+            databag = self.databag_registry.get_databag(name=source_name, is_source=False)
         else:
             raise Exception(f'invalid source_type - {source_type}')
         write_mode = kwargs.get('save_mode', 'overwrite')
@@ -103,8 +104,9 @@ class DataSinkBaseAction(ActionTemplate):
 
 class JsonSinkAction(DataSinkBaseAction):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     def get_file_extension(self) -> str:
         return 'json'
@@ -120,8 +122,9 @@ class JsonSinkAction(DataSinkBaseAction):
 
 class CSVSinkAction(DataSinkBaseAction):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     def get_file_extension(self) -> str:
         return 'csv'

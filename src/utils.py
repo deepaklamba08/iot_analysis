@@ -55,10 +55,13 @@ def get_logger(log_file_name='../logs/app.log'):
     return logger
 
 
-def load_module(module_name: str):
+def load_module(module_name: str,**kwargs):
     module_name, class_name = module_name.rsplit(".", 1)
     module_class = getattr(importlib.import_module(module_name), class_name)
-    return module_class()
+    if kwargs:
+        return module_class(**kwargs)
+    else:
+        return module_class()
 
 
 def replace_placeholders(raw_data: str, parameters: dict) -> str:

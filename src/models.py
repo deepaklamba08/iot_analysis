@@ -86,6 +86,43 @@ class DataBag:
         return f'[name = {self.name}, provider = {self.provider}]'
 
 
+class DatabagRegistry:
+
+    def __init__(self):
+        self.src_data_bags = {}
+        self.tr_data_bags = {}
+
+    def get_databag(self, name: str, is_source: bool) -> DataBag:
+        if is_source:
+            databag = self.src_data_bags.get(name)
+        else:
+            databag = self.tr_data_bags.get(name)
+
+        if not databag:
+            raise Exception(f'databag not found - {name}')
+
+        return databag
+
+    def all_sources_databags(self):
+        return self.src_data_bags
+
+    def all_transformation_databags(self):
+        return self.tr_data_bags
+
+    def source_databag(self, name: str, databag: DataBag):
+        if name in self.src_data_bags.keys():
+            raise Exception(f'source databag already exists by name - {name}')
+        self.src_data_bags[name] = databag
+
+    def transformation_databag(self, name: str, databag: DataBag):
+        if name in self.tr_data_bags.keys():
+            raise Exception(f'transformation databag already exists by name - {name}')
+        self.tr_data_bags[name] = databag
+
+    def __str__(self):
+        return f"[total data bags = {len(self.src_data_bags) + len(self.tr_data_bags)}]"
+
+
 class SourceTemplate:
 
     @abstractmethod
@@ -99,6 +136,9 @@ class SourceTemplate:
 
 class TransformationTemplate:
 
+    def __init__(self, databag_registry: DatabagRegistry):
+        self.databag_registry = databag_registry
+
     @abstractmethod
     def name(self):
         pass
@@ -109,6 +149,9 @@ class TransformationTemplate:
 
 
 class ActionTemplate:
+
+    def __init__(self, databag_registry: DatabagRegistry):
+        self.databag_registry = databag_registry
 
     @abstractmethod
     def call(self, **kwargs):

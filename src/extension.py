@@ -1,23 +1,23 @@
 import requests
 
-from src.models import DataBag, TransformationTemplate, ActionTemplate
+from src.models import DataBag, TransformationTemplate, ActionTemplate,DatabagRegistry
 from src.utils import get_logger, get_credentials
 
 
 class TelegramMessageAction(ActionTemplate):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
-    @staticmethod
-    def __get_messages(parameters: dict):
+    def __get_messages(self,parameters: dict):
         message_source_type = parameters.get('message_source_type')
         message_source_name = parameters.get('message_source_name')
 
         if message_source_type == 'source':
-            telegram_data = parameters.get('data')['sources_data'][message_source_name]
+            telegram_data = self.databag_registry.get_databag(name=message_source_name, is_source=True)
         elif message_source_type == 'transformation':
-            telegram_data = parameters.get('data')['transformation_data'][message_source_name]
+            telegram_data = self.databag_registry.get_databag(name=message_source_name, is_source=False)
         else:
             raise Exception(f'invalid message_source_type - {message_source_type}')
 
@@ -36,7 +36,7 @@ class TelegramMessageAction(ActionTemplate):
 
         try:
             api_url = f'https://api.telegram.org/bot{api_token}/sendMessage'
-            messages = TelegramMessageAction.__get_messages(kwargs)
+            messages = self.__get_messages(kwargs)
             for message in messages:
                 response = requests.post(api_url,
                                          json={'chat_id': chat_id,
@@ -49,8 +49,9 @@ class TelegramMessageAction(ActionTemplate):
 
 class EmailNotificationAction(ActionTemplate):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     def call(self, **kwargs):
         self.logger.debug('executing : EmailNotificationAction.call()')
@@ -60,8 +61,9 @@ class EmailNotificationAction(ActionTemplate):
 
 class MessageFormatterTransformation(TransformationTemplate):
 
-    def __init__(self):
+    def __init__(self, databag_registry: DatabagRegistry):
         self.logger = get_logger()
+        self.databag_registry = databag_registry
 
     def name(self) -> str:
         return 'MessageFormatterTransformation'
@@ -79,9 +81,9 @@ class MessageFormatterTransformation(TransformationTemplate):
         message_source_name = parameters.get('message_source_name')
 
         if message_source_type == 'source':
-            message_data = parameters['sources_data'][message_source_name]
+            message_data = self.databag_registry.get_databag(name=message_source_name, is_source=True)
         elif message_source_type == 'transformation':
-            message_data = parameters['previous_data'][message_source_name]
+            message_data = self.databag_registry.get_databag(name=message_source_name, is_source=False)
         else:
             raise Exception(f'invalid message_source_type - {message_source_type}')
         message_fields = kwargs.get('message_fields')
