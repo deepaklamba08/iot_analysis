@@ -176,6 +176,9 @@ class RuntimeContext:
     def config_file(self) -> str:
         return self.parameters.get('config_file')
 
+    def execution_summary_dir(self) -> str:
+        return self.parameters.get('execution_summary_dir')
+
     def application_id(self) -> str:
         return self.parameters.get('app_id')
 

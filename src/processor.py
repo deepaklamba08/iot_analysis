@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
     TransformationTemplate, ActionTemplate, DatabagRegistry
-from src.store import ApplicationStore
+from src.store import ApplicationStore, ExecutionStore
 from src.utils import get_logger
 from src.utils import load_module
 
@@ -198,8 +198,9 @@ class ApplicationProcessor(Processor):
 
 class Orchestrator:
 
-    def __init__(self, application_store: ApplicationStore):
+    def __init__(self, application_store: ApplicationStore, execution_store: ExecutionStore):
         self.application_store = application_store
+        self.execution_store = execution_store
         self.logger = get_logger()
 
     def orchestrate(self, context: RuntimeContext):
@@ -209,8 +210,18 @@ class Orchestrator:
             self.logger.error(f'application not found by id - {context.application_id()}')
             raise Exception(f'application not found by id - {context.application_id()}')
 
+        execution_id = self.execution_store.create_summary(app_id=application.object_id,
+                                                           status='executing',
+                                                           message='app is running',
+                                                           parameters=context.parameters)
         process_result = ApplicationProcessor(application=application, runtime_context=context).run()
         if not process_result.status:
+            self.execution_store.update_summary(execution_id=execution_id,
+                                                **{'status': 'failed',
+                                                   'message': f'execution failed with error - {process_result.message}'})
             self.logger.error(f'execution failed with error - {process_result.message}')
             raise Exception(f'execution failed with error - {process_result.message}')
+
+        self.execution_store.update_summary(execution_id=execution_id, **{'status': 'finished',
+                                                                          'message': 'app execution completed'})
         self.logger.debug('exiting : Orchestrator.orchestrate()')

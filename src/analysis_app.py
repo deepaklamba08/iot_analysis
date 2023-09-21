@@ -5,7 +5,7 @@ sys.path.append(os.environ['PATH_TO_APP'])
 
 from src.processor import Orchestrator
 from src.models import RuntimeContext
-from src.store import ApplicationStore
+from src.store import ApplicationStore, ExecutionStore
 from src.utils import get_logger
 
 
@@ -22,7 +22,9 @@ class AnalysisApp:
         self.logger.info('starting application ...')
         runtime_context = self.create_runtime_context()
         application_store = ApplicationStore(runtime_context.config_file(), self.app_args)
-        Orchestrator(application_store).orchestrate(runtime_context)
+        execution_store = ExecutionStore(runtime_context.execution_summary_dir())
+        Orchestrator(application_store=application_store,
+                     execution_store=execution_store).orchestrate(context=runtime_context)
         self.logger.info('exiting application ...')
 
 
