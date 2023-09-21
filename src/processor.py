@@ -97,7 +97,7 @@ class TransformationProcessor(Processor):
             self.logger.error(f'transformation type not supported- {transformation.transformation_type}')
             raise Exception(f'transformation type not supported- {transformation.transformation_type}')
 
-        transformation_provider = load_module(module_name=provider, databag_registry=self.databag_registry)
+        transformation_provider = load_module(module_name=provider, databag_lookup=self.databag_registry.get_lookup())
         if isinstance(transformation_provider, TransformationTemplate):
             tr_config = copy.copy(transformation.config)
             return transformation_provider.execute(**tr_config)
@@ -142,7 +142,7 @@ class ActionProcessor(Processor):
         if not provider:
             raise Exception(f'action type not supported- {action.action_type}')
 
-        action_provider = load_module(module_name=provider, databag_registry=self.databag_registry)
+        action_provider = load_module(module_name=provider, databag_lookup=self.databag_registry.get_lookup())
         if isinstance(action_provider, ActionTemplate):
             action_config = copy.copy(action.config)
             action_provider.call(**action_config)

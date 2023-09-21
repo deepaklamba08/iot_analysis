@@ -1,23 +1,23 @@
 import requests
 
-from src.models import DataBag, TransformationTemplate, ActionTemplate,DatabagRegistry
+from src.models import DataBag, TransformationTemplate, ActionTemplate,DatabagLookup
 from src.utils import get_logger, get_credentials
 
 
 class TelegramMessageAction(ActionTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def __get_messages(self,parameters: dict):
         message_source_type = parameters.get('message_source_type')
         message_source_name = parameters.get('message_source_name')
 
         if message_source_type == 'source':
-            telegram_data = self.databag_registry.get_databag(name=message_source_name, is_source=True)
+            telegram_data = self.databag_lookup.get_databag(name=message_source_name, is_source=True)
         elif message_source_type == 'transformation':
-            telegram_data = self.databag_registry.get_databag(name=message_source_name, is_source=False)
+            telegram_data = self.databag_lookup.get_databag(name=message_source_name, is_source=False)
         else:
             raise Exception(f'invalid message_source_type - {message_source_type}')
 
@@ -49,9 +49,9 @@ class TelegramMessageAction(ActionTemplate):
 
 class EmailNotificationAction(ActionTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def call(self, **kwargs):
         self.logger.debug('executing : EmailNotificationAction.call()')
@@ -61,9 +61,9 @@ class EmailNotificationAction(ActionTemplate):
 
 class MessageFormatterTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'MessageFormatterTransformation'
@@ -81,9 +81,9 @@ class MessageFormatterTransformation(TransformationTemplate):
         message_source_name = parameters.get('message_source_name')
 
         if message_source_type == 'source':
-            message_data = self.databag_registry.get_databag(name=message_source_name, is_source=True)
+            message_data = self.databag_lookup.get_databag(name=message_source_name, is_source=True)
         elif message_source_type == 'transformation':
-            message_data = self.databag_registry.get_databag(name=message_source_name, is_source=False)
+            message_data = self.databag_lookup.get_databag(name=message_source_name, is_source=False)
         else:
             raise Exception(f'invalid message_source_type - {message_source_type}')
         message_fields = kwargs.get('message_fields')

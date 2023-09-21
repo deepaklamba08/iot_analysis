@@ -1,26 +1,26 @@
 from abc import abstractmethod
 
-from src.models import DataBag, TransformationTemplate, DatabagRegistry
+from src.models import DataBag, TransformationTemplate, DatabagLookup
 from src.utils import get_logger
 
 
-def select_databag(parameters: dict, databag_registry: DatabagRegistry) -> DataBag:
+def select_databag(parameters: dict, databag_lookup: DatabagLookup) -> DataBag:
     source_type = parameters.get('source_type')
     source_name = parameters.get('source_name')
 
     if source_type == 'source':
-        return databag_registry.get_databag(name=source_name, is_source=True)
+        return databag_lookup.get_databag(name=source_name, is_source=True)
     elif source_type == 'transformation':
-        return databag_registry.get_databag(name=source_name, is_source=False)
+        return databag_lookup.get_databag(name=source_name, is_source=False)
     else:
         raise Exception(f'invalid source_type - {source_type}')
 
 
 class DummyTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'DummyTransformation'
@@ -32,9 +32,9 @@ class DummyTransformation(TransformationTemplate):
 
 class BaseFieldTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     @abstractmethod
     def select_or_reject(self, item: dict, fields: list) -> dict:
@@ -42,7 +42,7 @@ class BaseFieldTransformation(TransformationTemplate):
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : BaseFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_registry)
+        databag = select_databag(kwargs,self.databag_lookup)
 
         fields = kwargs['fields']
         output = list(map(lambda item: self.select_or_reject(item, fields), databag.data))
@@ -53,9 +53,9 @@ class BaseFieldTransformation(TransformationTemplate):
 
 class FieldSelectorTransformation(BaseFieldTransformation):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'FieldSelectorTransformation'
@@ -69,9 +69,9 @@ class FieldSelectorTransformation(BaseFieldTransformation):
 
 class FieldRejectTransformation(BaseFieldTransformation):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'FieldRejectTransformation'
@@ -86,9 +86,9 @@ class FieldRejectTransformation(BaseFieldTransformation):
 
 class AddConstantFieldTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'AddConstantFieldTransformation'
@@ -102,7 +102,7 @@ class AddConstantFieldTransformation(TransformationTemplate):
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : AddConstantFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_registry)
+        databag = select_databag(kwargs,self.databag_lookup)
 
         fields = kwargs['fields']
         output = list(map(lambda item: AddConstantFieldTransformation.add_field(item, fields), databag.data))
@@ -113,9 +113,9 @@ class AddConstantFieldTransformation(TransformationTemplate):
 
 class RenameFieldTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'RenameFieldTransformation'
@@ -132,7 +132,7 @@ class RenameFieldTransformation(TransformationTemplate):
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : RenameFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_registry)
+        databag = select_databag(kwargs,self.databag_lookup)
 
         fields = kwargs['fields']
         output = list(map(lambda item: RenameFieldTransformation.rename_field(item, fields), databag.data))
@@ -143,9 +143,9 @@ class RenameFieldTransformation(TransformationTemplate):
 
 class ConcatFieldTransformation(TransformationTemplate):
 
-    def __init__(self, databag_registry: DatabagRegistry):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
-        self.databag_registry = databag_registry
+        self.databag_lookup = databag_lookup
 
     def name(self) -> str:
         return 'ConcatFieldTransformation'
@@ -161,7 +161,7 @@ class ConcatFieldTransformation(TransformationTemplate):
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : ConcatFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_registry)
+        databag = select_databag(kwargs,self.databag_lookup)
 
         fields = kwargs['fields']
         output_field_name = kwargs['output_field']

@@ -86,11 +86,17 @@ class DataBag:
         return f'[name = {self.name}, provider = {self.provider}]'
 
 
-class DatabagRegistry:
+class DatabagLookup:
 
-    def __init__(self):
-        self.src_data_bags = {}
-        self.tr_data_bags = {}
+    def __init__(self, src_data_bags: dict, tr_data_bags: dict):
+        self.src_data_bags = src_data_bags
+        self.tr_data_bags = tr_data_bags
+
+    def all_sources_databags(self):
+        return self.src_data_bags
+
+    def all_transformation_databags(self):
+        return self.tr_data_bags
 
     def get_databag(self, name: str, is_source: bool) -> DataBag:
         if is_source:
@@ -103,11 +109,15 @@ class DatabagRegistry:
 
         return databag
 
-    def all_sources_databags(self):
-        return self.src_data_bags
 
-    def all_transformation_databags(self):
-        return self.tr_data_bags
+class DatabagRegistry:
+
+    def __init__(self):
+        self.src_data_bags = {}
+        self.tr_data_bags = {}
+
+    def get_lookup(self) -> DatabagLookup:
+        return DatabagLookup(self.src_data_bags, self.tr_data_bags)
 
     def source_databag(self, name: str, databag: DataBag):
         if name in self.src_data_bags.keys():
