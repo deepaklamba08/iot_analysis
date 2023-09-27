@@ -146,8 +146,8 @@ class SourceTemplate:
 
 class TransformationTemplate:
 
-    def __init__(self, databag_registry: DatabagRegistry):
-        self.databag_registry = databag_registry
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.databag_lookup = databag_lookup
 
     @abstractmethod
     def name(self):
@@ -160,8 +160,8 @@ class TransformationTemplate:
 
 class ActionTemplate:
 
-    def __init__(self, databag_registry: DatabagRegistry):
-        self.databag_registry = databag_registry
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.databag_lookup = databag_lookup
 
     @abstractmethod
     def call(self, **kwargs):
@@ -179,7 +179,7 @@ class RuntimeContext:
     def execution_summary_dir(self) -> str:
         return self.parameters.get('execution_summary_dir')
 
-    def application_id(self) -> str:
+    def job_id(self) -> str:
         return self.parameters.get('app_id')
 
     def get_value(self, key: str):
@@ -187,3 +187,22 @@ class RuntimeContext:
 
     def get_value(self, key: str, default):
         return self.parameters.get(key, default)
+
+
+class Job(Entity):
+    def __init__(self, object_id: str, name: str, status: bool,
+                 application_id: str,
+                 description: str = None,
+                 config: dict = {}):
+        self.object_id = object_id
+        self.name = name
+        self.status = status
+        self.application_id = application_id
+        self.description = description
+        self.config = config
+
+    def job_parameters(self) -> dict:
+        return self.config.get('parameters', {})
+
+    def __str__(self):
+        return f"[object_id = {self.object_id}, name = {self.name}]"

@@ -205,12 +205,18 @@ class Orchestrator:
 
     def orchestrate(self, context: RuntimeContext):
         self.logger.debug('executing : Orchestrator.orchestrate()')
-        application = self.application_store.lookup_application(context.application_id())
-        if not application:
-            self.logger.error(f'application not found by id - {context.application_id()}')
-            raise Exception(f'application not found by id - {context.application_id()}')
+        self.logger.debug(f'loading job - {context.job_id()}')
+        job = self.application_store.lookup_job(context.job_id())
+        if not job:
+            self.logger.error(f'job not found by id - {context.job_id()}')
+            raise Exception(f'job not found by id - {context.job_id()}')
 
-        execution_id = self.execution_store.create_summary(app_id=application.object_id,
+        application = self.application_store.lookup_application(job.application_id)
+        if not application:
+            self.logger.error(f'application not found by id - {job.application_id}')
+            raise Exception(f'application not found by id - {job.application_id}')
+
+        execution_id = self.execution_store.create_summary(job_id=job.object_id,
                                                            status='executing',
                                                            message='app is running',
                                                            parameters=context.parameters)

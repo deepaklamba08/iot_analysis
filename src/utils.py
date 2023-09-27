@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 import os
 
 
+class Constants:
+    pass
+
+
 class CredentialProvider(ABC):
 
     def __init__(self):
@@ -55,7 +59,7 @@ def get_logger(log_file_name='../logs/app.log'):
     return logger
 
 
-def load_module(module_name: str,**kwargs):
+def load_module(module_name: str, **kwargs):
     module_name, class_name = module_name.rsplit(".", 1)
     module_class = getattr(importlib.import_module(module_name), class_name)
     if kwargs:

@@ -1,4 +1,4 @@
-from src.models import Application, Source, Transformation, Action
+from src.models import Application, Source, Transformation, Action, Job
 import json
 from src.utils import get_logger, replace_placeholders
 import os
@@ -11,29 +11,70 @@ class ApplicationStore:
     def __init__(self, config_file: str, parameters: dict = {}):
         self.config_file = config_file
         self.parameters = parameters
-        self.applications: dict = None
         self.logger = get_logger()
+
+        self.applications: dict = None
+        self.jobs: dict = None
+        records = self.__load_all_records()
+        self.__load_applications(records=records)
+        self.__load_jobs(records=records)
+        self.logger.debug(f'number of applications - {len(self.applications)}')
 
     def lookup_application(self, application_id: str) -> Application:
         self.logger.debug(f'executing : ApplicationStore.lookup_application(application_id : {application_id})')
-        if not self.applications:
-            self.logger.debug('loading all applications')
-            self.__load_applications()
-            self.logger.debug(f'number of applications - {len(self.applications)}')
         self.logger.debug(f'exiting : ApplicationStore.lookup_application()')
         return self.applications.get(application_id)
 
-    def __load_applications(self):
+    def load_all_applications(self) -> list:
+        return self.applications.values()
+
+    def lookup_job(self, job_id: str) -> Job:
+        self.logger.debug(f'executing : ApplicationStore.lookup_job(job_id : {job_id})')
+        self.logger.debug(f'exiting : ApplicationStore.lookup_job()')
+        return self.jobs.get(job_id)
+
+    def load_all_jobs(self) -> list:
+        return self.jobs.values()
+
+    def __load_all_records(self) -> list:
         if not self.config_file:
             raise Exception(f'config file is invalid - {self.config_file}')
-        self.applications: dict = {}
         with open(self.config_file, 'r') as data_stream:
             config_str = replace_placeholders(raw_data='\n'.join(data_stream.readlines()),
                                               parameters=self.parameters)
-            raw_data_list = json.loads(config_str)
-            for raw_data in raw_data_list:
-                app = ApplicationStore.__parse_application(raw_data)
-                self.applications[app.object_id] = app
+            return json.loads(config_str)
+
+    def __load_applications(self, records: list):
+        self.logger.debug('loading all applications')
+        self.applications: dict = {}
+        raw_data_list = list(filter(lambda record: record.get('type', 'application') == 'application', records))
+        for raw_data in raw_data_list:
+            app = ApplicationStore.__parse_application(raw_data)
+            self.applications[app.object_id] = app
+
+    @staticmethod
+    def __parse_job(config: dict):
+        return Job(
+            object_id=config['id'],
+            name=config['name'],
+            status=config['status'],
+            application_id=config['application_id'],
+            description=config['description'],
+            config=config['config'])
+
+    def __load_jobs(self, records: list):
+        self.logger.debug('loading all jobs')
+        self.jobs: dict = {}
+        raw_data_list = list(filter(lambda record: record.get('type', 'application') == 'job', records))
+        for raw_data in raw_data_list:
+            job = ApplicationStore.__parse_job(raw_data)
+            self.jobs[job.object_id] = job
+
+    @staticmethod
+    def __validate_fields(config: dict, fields: list, message_prefix: str = ""):
+        missing_fields = list(filter(lambda field_name: field_name not in config.keys(), fields))
+        if len(missing_fields) > 0:
+            raise Exception(f"{message_prefix}Missing fields - {', '.join(missing_fields)}")
 
     @staticmethod
     def __parse_source(config) -> Source:
@@ -86,13 +127,13 @@ class ApplicationStore:
 
 
 class ExecutionDetail:
-    __ATTRIBUTES = ["execution_id", "app_id", "status", "message", "start_time", "end_time", "parameters"]
+    __ATTRIBUTES = ["execution_id", "job_id", "status", "message", "start_time", "end_time", "parameters"]
 
-    def __init__(self, execution_id: str = None, app_id: str = None, status: str = None, message: str = None,
+    def __init__(self, execution_id: str = None, job_id: str = None, status: str = None, message: str = None,
                  start_time: str = None, end_time: str = None,
                  parameters: dict = None):
         self.execution_id = execution_id
-        self.app_id = app_id
+        self.job_id = job_id
         self.status = status
         self.message = message
         self.start_time = start_time
@@ -125,7 +166,7 @@ class ExecutionDetail:
         return data
 
     def __str__(self):
-        return f"[app_id = {self.app_id}]"
+        return f"[job_id = {self.job_id}]"
 
 
 class ExecutionStore:
@@ -187,9 +228,9 @@ class ExecutionStore:
 
         self.__save_summary(execution_detail=execution_detail, replace_existing=True)
 
-    def create_summary(self, app_id: str, status: str, message: str, parameters: dict = None) -> str:
+    def create_summary(self, job_id: str, status: str, message: str, parameters: dict = None) -> str:
         execution_id = str(uuid.uuid1())
-        execution_detail = ExecutionDetail(execution_id=execution_id, app_id=app_id, status=status, message=message,
+        execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, status=status, message=message,
                                            start_time=datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT),
                                            parameters=parameters)
         self.__save_summary(execution_detail=execution_detail, replace_existing=False)
@@ -206,3 +247,8 @@ class ExecutionStore:
                 'end_time': datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT)
             })
         self.__update_summary(execution_detail=existing_summary)
+
+    def get_job_history(self, job_id: str) -> list:
+        records = self.__fetch_all_records()
+        matched_records = list(filter(lambda record: record.app_id == job_id, records))
+        return matched_records
