@@ -250,5 +250,5 @@ class ExecutionStore:
 
     def get_job_history(self, job_id: str) -> list:
         records = self.__fetch_all_records()
-        matched_records = list(filter(lambda record: record.app_id == job_id, records))
+        matched_records = list(filter(lambda record: record.job_id == job_id, records))
         return matched_records
