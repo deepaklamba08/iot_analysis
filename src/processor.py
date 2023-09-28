@@ -219,15 +219,16 @@ class Orchestrator:
         execution_id = self.execution_store.create_summary(job_id=job.object_id,
                                                            status='executing',
                                                            message='app is running',
+                                                           run_by=context.get_value('submitter', '-'),
                                                            parameters=context.parameters)
         process_result = ApplicationProcessor(application=application, runtime_context=context).run()
         if not process_result.status:
             self.execution_store.update_summary(execution_id=execution_id,
-                                                **{'status': 'failed',
-                                                   'message': f'execution failed with error - {process_result.message}'})
-            self.logger.error(f'execution failed with error - {process_result.message}')
-            raise Exception(f'execution failed with error - {process_result.message}')
+                                                **{'status': 'Failed',
+                                                   'message': f'Execution failed with error - {process_result.message}'})
+            self.logger.error(f'Execution failed with error - {process_result.message}')
+            raise Exception(f'Execution failed with error - {process_result.message}')
 
-        self.execution_store.update_summary(execution_id=execution_id, **{'status': 'finished',
-                                                                          'message': 'app execution completed'})
+        self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
+                                                                          'message': 'App execution completed'})
         self.logger.debug('exiting : Orchestrator.orchestrate()')

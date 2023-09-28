@@ -127,11 +127,12 @@ class ApplicationStore:
 
 
 class ExecutionDetail:
-    __ATTRIBUTES = ["execution_id", "job_id", "status", "message", "start_time", "end_time", "parameters"]
+    __ATTRIBUTES = ["execution_id", "job_id", "status", "run_by", "message", "start_time", "end_time", "parameters"]
 
     def __init__(self, execution_id: str = None, job_id: str = None, status: str = None, message: str = None,
                  start_time: str = None, end_time: str = None,
-                 parameters: dict = None):
+                 parameters: dict = None,
+                 run_by: str = None):
         self.execution_id = execution_id
         self.job_id = job_id
         self.status = status
@@ -139,6 +140,7 @@ class ExecutionDetail:
         self.start_time = start_time
         self.end_time = end_time
         self.parameters = parameters
+        self.run_by = run_by
 
     @staticmethod
     def from_dict(data: dict):
@@ -228,11 +230,11 @@ class ExecutionStore:
 
         self.__save_summary(execution_detail=execution_detail, replace_existing=True)
 
-    def create_summary(self, job_id: str, status: str, message: str, parameters: dict = None) -> str:
+    def create_summary(self, job_id: str, status: str, message: str, run_by: str, parameters: dict = None) -> str:
         execution_id = str(uuid.uuid1())
         execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, status=status, message=message,
                                            start_time=datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT),
-                                           parameters=parameters)
+                                           parameters=parameters, run_by=run_by)
         self.__save_summary(execution_detail=execution_detail, replace_existing=False)
         return execution_id
 
