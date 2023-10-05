@@ -24,7 +24,10 @@ class Entity(ABC):
 
 
 class Source(Entity):
-    def __init__(self, object_id: str, name: str, status: bool,
+    def __init__(self,
+                 object_id: str,
+                 name: str,
+                 status: bool,
                  source_type: str,
                  create_date: str = None,
                  update_date: str = None,
