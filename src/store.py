@@ -59,6 +59,10 @@ class ApplicationStore:
             name=config['name'],
             status=config['status'],
             application_id=config['application_id'],
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
             description=config['description'],
             config=config['config'])
 
@@ -83,6 +87,10 @@ class ApplicationStore:
             name=config['name'],
             status=config['status'],
             description=config['description'],
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
             source_type=config['type'],
             config=config['config']
         )
@@ -94,6 +102,10 @@ class ApplicationStore:
             name=config['name'],
             status=config['status'],
             description=config['description'],
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
             transformation_type=config['type'],
             config=config['config']
         )
@@ -105,6 +117,10 @@ class ApplicationStore:
             name=config['name'],
             status=config['status'],
             description=config['description'],
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
             action_type=config['type'],
             config=config['config']
         )
@@ -122,25 +138,34 @@ class ApplicationStore:
                                      config.get('transformations', []))),
             actions=list(map(lambda action_config: ApplicationStore.__parse_action(action_config),
                              config['actions'])),
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
             description=config['description'],
             config=config['config'])
 
 
 class ExecutionDetail:
-    __ATTRIBUTES = ["execution_id", "job_id", "status", "run_by", "message", "start_time", "end_time", "parameters"]
+    __ATTRIBUTES = ["execution_id", "job_id", "app_id", "status", "run_by", "message", "start_time", "end_time",
+                    "run_type", "parameters"]
 
-    def __init__(self, execution_id: str = None, job_id: str = None, status: str = None, message: str = None,
+    def __init__(self, execution_id: str = None, job_id: str = None, app_id: str = None, status: str = None,
+                 message: str = None,
                  start_time: str = None, end_time: str = None,
                  parameters: dict = None,
-                 run_by: str = None):
+                 run_by: str = None,
+                 run_type:str="adhoc"):
         self.execution_id = execution_id
         self.job_id = job_id
+        self.app_id = app_id
         self.status = status
         self.message = message
         self.start_time = start_time
         self.end_time = end_time
         self.parameters = parameters
         self.run_by = run_by
+        self.run_type = run_type
 
     @staticmethod
     def from_dict(data: dict):
@@ -230,9 +255,11 @@ class ExecutionStore:
 
         self.__save_summary(execution_detail=execution_detail, replace_existing=True)
 
-    def create_summary(self, job_id: str, status: str, message: str, run_by: str, parameters: dict = None) -> str:
+    def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
+                       parameters: dict = None) -> str:
         execution_id = str(uuid.uuid1())
-        execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, status=status, message=message,
+        execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, app_id=app_id, status=status,
+                                           message=message,
                                            start_time=datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT),
                                            parameters=parameters, run_by=run_by)
         self.__save_summary(execution_detail=execution_detail, replace_existing=False)

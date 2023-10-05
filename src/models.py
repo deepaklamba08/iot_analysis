@@ -3,10 +3,22 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
 
-    def __init__(self, object_id: str, name: str, status: bool, description: str = None, config: dict = {}):
+    def __init__(self, object_id: str,
+                 name: str,
+                 status: bool,
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
+                 description: str = None,
+                 config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.description = description
         self.config = config
 
@@ -14,13 +26,22 @@ class Entity(ABC):
 class Source(Entity):
     def __init__(self, object_id: str, name: str, status: bool,
                  source_type: str,
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
                  description: str = None,
                  config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
         self.source_type = source_type
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.description = description
+
         self.config = config
 
     def __str__(self):
@@ -28,12 +49,21 @@ class Source(Entity):
 
 
 class Transformation(Entity):
-    def __init__(self, object_id: str, name: str, status: bool, transformation_type: str, description: str = None,
+    def __init__(self, object_id: str, name: str, status: bool, transformation_type: str,
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
+                 description: str = None,
                  config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
         self.transformation_type = transformation_type
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.description = description
         self.config = config
 
@@ -42,12 +72,21 @@ class Transformation(Entity):
 
 
 class Action(Entity):
-    def __init__(self, object_id: str, name: str, status: bool, action_type: str, description: str = None,
+    def __init__(self, object_id: str, name: str, status: bool, action_type: str,
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
+                 description: str = None,
                  config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
         self.action_type = action_type
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.description = description
         self.config = config
 
@@ -60,7 +99,12 @@ class Application(Entity):
                  sources: list,
                  transformations: list,
                  actions: list,
-                 description: str = None, config: dict = {}):
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
+                 description: str = None,
+                 config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
@@ -68,6 +112,10 @@ class Application(Entity):
         self.transformations = transformations
         self.actions = actions
         self.description = description
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.config = config
 
     def __str__(self):
@@ -192,12 +240,20 @@ class RuntimeContext:
 class Job(Entity):
     def __init__(self, object_id: str, name: str, status: bool,
                  application_id: str,
+                 create_date: str = None,
+                 update_date: str = None,
+                 created_by: str = None,
+                 updated_by: str = None,
                  description: str = None,
                  config: dict = {}):
         self.object_id = object_id
         self.name = name
         self.status = status
         self.application_id = application_id
+        self.create_date = create_date
+        self.update_date = update_date
+        self.created_by = created_by
+        self.updated_by = updated_by
         self.description = description
         self.config = config
 
