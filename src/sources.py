@@ -132,3 +132,18 @@ class MongoDbSource(SourceTemplate):
         return DataBag(name='mongodb_databag', provider=self.name(),
                        data=list(map(lambda item: item, data_list)),
                        metadata={})
+
+
+class DevDataSource(SourceTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'DevDataSource'
+
+    def load(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : DevDataSource.load()')
+        dev_data = kwargs['data']
+        self.logger.debug('executing : DevDataSource.load()')
+        return DataBag(name='dev_databag', provider=self.name(), data=dev_data)

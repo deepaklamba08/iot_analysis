@@ -230,7 +230,7 @@ class RuntimeContext:
     def execution_summary_dir(self) -> str:
         return self.parameters.get('execution_summary_dir')
 
-    def job_id(self) -> str:
+    def app_id(self) -> str:
         return self.parameters.get('app_id')
 
     def get_value(self, key: str):

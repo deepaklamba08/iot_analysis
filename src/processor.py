@@ -35,7 +35,8 @@ class SourceProcessor(Processor):
         self.source_providers = {'click_house': 'src.sources.ClickHouseSource',
                                  'json': 'src.sources.JsonSource',
                                  'csv': 'src.sources.CsvSource',
-                                 'mongo_db': 'src.sources.MongoDbSource'}
+                                 'mongo_db': 'src.sources.MongoDbSource',
+                                 'dev_source': 'src.sources.DevDataSource'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
@@ -196,6 +197,13 @@ class ApplicationProcessor(Processor):
         return execution_result
 
 
+class AppExecutionResult:
+
+    def __init__(self, app_id: str, execution_id: str):
+        self.app_id = app_id
+        self.execution_id = execution_id
+
+
 class Orchestrator:
 
     def __init__(self, application_store: ApplicationStore, execution_store: ExecutionStore):
@@ -203,21 +211,16 @@ class Orchestrator:
         self.execution_store = execution_store
         self.logger = get_logger()
 
-    def orchestrate(self, context: RuntimeContext):
+    def orchestrate(self, context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug('executing : Orchestrator.orchestrate()')
-        self.logger.debug(f'loading job - {context.job_id()}')
-        job = self.application_store.lookup_job(context.job_id())
-        if not job:
-            self.logger.error(f'job not found by id - {context.job_id()}')
-            raise Exception(f'job not found by id - {context.job_id()}')
 
-        application = self.application_store.lookup_application(job.application_id)
+        application = self.application_store.lookup_application(context.app_id())
         if not application:
-            self.logger.error(f'application not found by id - {job.application_id}')
-            raise Exception(f'application not found by id - {job.application_id}')
+            self.logger.error(f'application not found by id - {context.app_id()}')
+            raise Exception(f'application not found by id - {context.app_id()}')
 
-        execution_id = self.execution_store.create_summary(job_id=job.object_id,
-                                                           app_id=job.application_id,
+        execution_id = self.execution_store.create_summary(job_id=context.get_value("job_id", None),
+                                                           app_id=context.app_id(),
                                                            status='executing',
                                                            message='app is running',
                                                            run_by=context.get_value('submitter', '-'),
@@ -233,3 +236,4 @@ class Orchestrator:
         self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
                                                                           'message': 'App execution completed'})
         self.logger.debug('exiting : Orchestrator.orchestrate()')
+        return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)
