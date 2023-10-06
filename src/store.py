@@ -148,14 +148,15 @@ class ApplicationStore:
 
 class ExecutionDetail:
     __ATTRIBUTES = ["execution_id", "job_id", "app_id", "status", "run_by", "message", "start_time", "end_time",
-                    "run_type", "parameters"]
+                    "run_type", "parameters", "metrics"]
 
     def __init__(self, execution_id: str = None, job_id: str = None, app_id: str = None, status: str = None,
                  message: str = None,
                  start_time: str = None, end_time: str = None,
                  parameters: dict = None,
                  run_by: str = None,
-                 run_type:str="adhoc"):
+                 run_type: str = "adhoc",
+                 metrics: dict = {}):
         self.execution_id = execution_id
         self.job_id = job_id
         self.app_id = app_id
@@ -166,6 +167,7 @@ class ExecutionDetail:
         self.parameters = parameters
         self.run_by = run_by
         self.run_type = run_type
+        self.metrics = metrics
 
     @staticmethod
     def from_dict(data: dict):

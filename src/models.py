@@ -263,5 +263,8 @@ class Job(Entity):
     def job_parameters(self) -> dict:
         return self.config.get('parameters', {})
 
+    def is_scheduled(self) -> bool:
+        return self.config.get('is_scheduled', False)
+
     def __str__(self):
         return f"[object_id = {self.object_id}, name = {self.name}]"

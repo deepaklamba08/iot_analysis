@@ -10,9 +10,10 @@ from src.utils import load_module
 
 class ProcessResult:
 
-    def __init__(self, status: bool, message: str):
+    def __init__(self, status: bool, message: str, inference: dict = {}):
         self.status = status
         self.message = message
+        self.inference=inference
 
 
 class Processor(ABC):
@@ -171,6 +172,24 @@ class ApplicationProcessor(Processor):
         self.runtime_context = runtime_context
         self.databag_registry = DatabagRegistry()
 
+    def __generate_metrics(self):
+
+        source_metrics = list(map(lambda databag: {
+            'type':'Source',
+            'name': databag.name,
+            'provider': databag.provider,
+            'records': databag.metadata.get('row_count')
+        }, self.databag_registry.get_lookup().all_sources_databags().values()))
+
+        transformation_metrics = list(map(lambda databag: {
+            'type': 'Transformation',
+            'name': databag.name,
+            'provider': databag.provider,
+            'records': databag.metadata.get('row_count')
+        }, self.databag_registry.get_lookup().all_transformation_databags().values()))
+
+        return {'databag_metrics': source_metrics + transformation_metrics}
+
     def process(self) -> ProcessResult:
         self.logger.debug('executing : ApplicationProcessor.process()')
 
@@ -194,7 +213,8 @@ class ApplicationProcessor(Processor):
                                                    runtime_context=self.runtime_context,
                                                    databag_registry=self.databag_registry).run()
         self.logger.debug('exiting : ApplicationProcessor.process()')
-        return execution_result
+        return ProcessResult(status=execution_result.status, message=execution_result.message,
+                             inference=self.__generate_metrics())
 
 
 class AppExecutionResult:
@@ -234,6 +254,7 @@ class Orchestrator:
             raise Exception(f'Execution failed with error - {process_result.message}')
 
         self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
-                                                                          'message': 'App execution completed'})
+                                                                          'message': 'App execution completed',
+                                                                          'metrics': process_result.inference})
         self.logger.debug('exiting : Orchestrator.orchestrate()')
         return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)

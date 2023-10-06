@@ -27,7 +27,8 @@ class DummyTransformation(TransformationTemplate):
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : DummyTransformation.execute()')
-        return DataBag(name='dummy_databag', provider=self.name(), data=kwargs['data'])
+        data = kwargs['data']
+        return DataBag(name='dummy_databag', provider=self.name(), data=data,metadata={'row_count': len(data)})
 
 
 class BaseFieldTransformation(TransformationTemplate):
@@ -48,7 +49,7 @@ class BaseFieldTransformation(TransformationTemplate):
         output = list(map(lambda item: self.select_or_reject(item, fields), databag.data))
 
         self.logger.debug('exiting : BaseFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
 
 
 class FieldSelectorTransformation(BaseFieldTransformation):
@@ -108,7 +109,7 @@ class AddConstantFieldTransformation(TransformationTemplate):
         output = list(map(lambda item: AddConstantFieldTransformation.add_field(item, fields), databag.data))
 
         self.logger.debug('exiting : AddConstantFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
 
 
 class RenameFieldTransformation(TransformationTemplate):
@@ -138,7 +139,7 @@ class RenameFieldTransformation(TransformationTemplate):
         output = list(map(lambda item: RenameFieldTransformation.rename_field(item, fields), databag.data))
 
         self.logger.debug('exiting : RenameFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
 
 
 class ConcatFieldTransformation(TransformationTemplate):
@@ -171,4 +172,4 @@ class ConcatFieldTransformation(TransformationTemplate):
                 databag.data))
 
         self.logger.debug('exiting : ConcatFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output)
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})

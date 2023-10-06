@@ -1,6 +1,14 @@
 [
   {
     "device_id": "1",
-    "name": "test_device"
+    "name": "test_device-1"
+  },
+  {
+    "device_id": "2",
+    "name": "test_device-2"
+  },
+  {
+    "device_id": "3",
+    "name": "test_device-3"
   }
 ]

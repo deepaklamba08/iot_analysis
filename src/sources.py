@@ -146,4 +146,4 @@ class DevDataSource(SourceTemplate):
         self.logger.debug('executing : DevDataSource.load()')
         dev_data = kwargs['data']
         self.logger.debug('executing : DevDataSource.load()')
-        return DataBag(name='dev_databag', provider=self.name(), data=dev_data)
+        return DataBag(name='dev_databag', provider=self.name(), data=dev_data, metadata={'row_count': len(dev_data)})
