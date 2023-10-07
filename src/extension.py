@@ -1,6 +1,6 @@
 import requests
 
-from src.models import DataBag, TransformationTemplate, ActionTemplate,DatabagLookup
+from src.models import DataBag, TransformationTemplate, ActionTemplate, DatabagLookup
 from src.utils import get_logger, get_credentials
 
 
@@ -10,7 +10,7 @@ class TelegramMessageAction(ActionTemplate):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
-    def __get_messages(self,parameters: dict):
+    def __get_messages(self, parameters: dict):
         message_source_type = parameters.get('message_source_type')
         message_source_name = parameters.get('message_source_name')
 
@@ -91,4 +91,5 @@ class MessageFormatterTransformation(TransformationTemplate):
             map(lambda data_point: MessageFormatterTransformation.__format_message(
                 message_fields=message_fields, data=data_point,
                 message_title=kwargs.get('message_title')), message_data.data))
-        return DataBag(name='dummy_databag', provider=self.name(), data=formatted_messages)
+        return DataBag(name='dummy_databag', provider=self.name(), data=formatted_messages,
+                       metadata={'row_count': len(formatted_messages)})
