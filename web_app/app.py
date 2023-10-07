@@ -1,4 +1,7 @@
 import os
+import sys
+
+sys.path.append(os.environ['PATH_TO_WEB_APP'])
 
 from flask import Flask, request, json
 from flask import render_template
@@ -53,8 +56,9 @@ def job_status(job_name: str):
     return service.jobs_history(job_name=job_name, is_current=True)
 
 
-def __run_app(arguments: list):
-    parameters = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
+def __run_app(app_arguments: list):
+    print(f'arguments - {app_arguments}')
+    parameters = {app_arguments[i]: app_arguments[i + 1] for i in range(0, len(app_arguments), 2)}
 
     import yaml
     with open(parameters['config_file'], 'r') as stream:
@@ -70,5 +74,7 @@ def __run_app(arguments: list):
 
 
 if __name__ == '__main__':
-    p = ['config_file', 'E:\work\iot_analysis\\test\webapp_config.yaml']
-    __run_app(p)
+    arguments = sys.argv
+    arguments = arguments[1:]
+    #arguments = ['config_file', 'E:\work\iot_analysis\\test\webapp_config.yaml']
+    __run_app(arguments)

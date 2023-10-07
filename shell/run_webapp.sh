@@ -126,10 +126,23 @@ validate_parameters(){
 
 run_app(){
   log_message "INFO" "Running app"
-  CLI_INPUT_STRING="config_file $CONFIG_FILE_PATH submitter $APP_SUBMITTER ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_ANALYSIS_APP"
+  CLI_INPUT_STRING="config_file $CONFIG_FILE_PATH submitter $SUBMITTER ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
-  SHELL_CMD="$PYTHON_HOME $PYTHON_ANALYSIS_APP_NAME $CLI_INPUT_STRING"
+  SHELL_CMD="$PYTHON_HOME $PYTHON_WEB_APP_NAME $CLI_INPUT_STRING"
   log_message "INFO" "Shell cmd - $SHELL_CMD"
+
+  eval $SHELL_CMD
+  APP_RUN_STATUS=$?
+  log_message "INFO" "App run status code - $APP_RUN_STATUS"
+  if [ $APP_RUN_STATUS -eq 0 ]
+  then
+    log_message "INFO" "App run completed with status code - $APP_RUN_STATUS"
+    log_message "INFO" "Exiting run app"
+    exit 0
+  else
+    log_message "ERROR" "App run failed with status code - $APP_RUN_STATUS"
+    exit 1
+  fi
 
 }
 
