@@ -1,7 +1,7 @@
 import os
 import sys
 
-sys.path.append(os.environ['PATH_TO_APP'])
+sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 
 from src.processor import Orchestrator
 from src.models import RuntimeContext

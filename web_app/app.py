@@ -54,10 +54,15 @@ def job_status(job_name: str):
 
 
 def __run_app(arguments: list):
-    config = WebAppConfig(
-        parameters={arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
-    )
+    parameters = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
 
+    import yaml
+    with open(parameters['config_file'], 'r') as stream:
+        try:
+            yaml_config = yaml.safe_load(stream)
+            config = WebAppConfig(parameters=yaml_config['app'])
+        except yaml.YAMLError as exc:
+            raise Exception('error occurred while reading config file',exc)
     service.initialize(config=config)
     app.run(debug=True,
             host=config.get_value(key='host', default='127.0.0.1'),
@@ -65,6 +70,5 @@ def __run_app(arguments: list):
 
 
 if __name__ == '__main__':
-    p = ['app_config_file', 'E:\work\iot_analysis\\test\iot_analysis.json',
-         'execution_summary_dir', 'E:\work\iot_analysis\\test\summary']
+    p = ['config_file', 'E:\work\iot_analysis\\test\webapp_config.yaml']
     __run_app(p)
