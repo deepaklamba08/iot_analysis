@@ -239,7 +239,7 @@ class Orchestrator:
             self.logger.error(f'application not found by id - {context.app_id()}')
             raise Exception(f'application not found by id - {context.app_id()}')
 
-        execution_id = self.execution_store.create_summary(job_id=context.get_value("job_id", None),
+        execution_id = self.execution_store.create_summary(job_id=context.get_value("job_id", context.app_id()),
                                                            app_id=context.app_id(),
                                                            status='executing',
                                                            message='app is running',

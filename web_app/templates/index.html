@@ -1,0 +1,67 @@
+<html>
+<head>
+    <script src="{{url_for('static', filename='script.js')}}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+    .appDetailsLabel {
+        color: white;
+        font-weight: 400;
+        text-align:center;
+    }
+    </style>
+</head>
+
+<body onload="addJobs()">
+
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">Jobs Dashboard</div>
+        <div class="panel-body">
+            <p id="appNamesPara">
+                Select Application :
+                <select id="jobNames">
+                    <option>Available Applications</option>
+                </select>
+                <input type="button" onclick="applicationDetails()" value="Application Details"/>
+                <input type="button" onclick="jobDetails()" value="Job Details"/>
+                <input type="button" onclick="currentStatus()" value="Current Status"/>
+                <input type="button" onclick="jobHistory()" value="Load History"/>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <label id="appDetailsLabel" class="appDetailsLabel">Application
+                Details</label></label></div>
+        <div class="panel-body" id="table_data_panel">
+            <table id="dataTable">
+                <tbody id="dataTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading"><label id="appRunLabel" class="appRunLabel">Run Job</label></label></div>
+        <div class="panel-body" id="appRunLabelPanel">
+            <p>Job Parameters:</p>
+            <p id="jobParametersLabel"></p>
+            <table id="jobParamTable">
+                <tbody id="jobParamTableBody"></tbody>
+            </table>
+            <br>
+            <input type="button" onclick="runJob()" value="Run Job"/>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
