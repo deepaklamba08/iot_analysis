@@ -5,4 +5,5 @@ export DEFAULT_ARGS_TO_ANALYSIS_APP="execution_summary_dir /e/work/iot_analysis/
 
 export PYTHON_WEB_APP_NAME="/e/work/iot_analysis/web_app/app.py"
 export PATH_TO_WEB_APP="/e/work/iot_analysis/"
+#export PATH_TO_WEB_APP_NAME="app.py"
 export DEFAULT_ARGS_TO_WEB_APP="execution_summary_dir /e/work/iot_analysis/test/summary"
