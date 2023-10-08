@@ -4,6 +4,7 @@ from src.utils import get_logger, replace_placeholders
 import os
 import datetime
 import uuid
+from abc import ABC, abstractmethod
 
 
 class ApplicationStore:
@@ -198,11 +199,32 @@ class ExecutionDetail:
         return f"[job_id = {self.job_id}]"
 
 
-class ExecutionStore:
+class ExecutionStoreBase(ABC):
+
+    def __init__(self, parameters: dict):
+        self.parameters = parameters
+
+    @abstractmethod
+    def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
+                       parameters: dict = None) -> str:
+        pass
+
+    @abstractmethod
+    def update_summary(self, execution_id: str, **kwargs):
+        pass
+
+    @abstractmethod
+    def get_job_history(self, job_id: str) -> list:
+        pass
+
+
+class ExecutionStore(ExecutionStoreBase):
     __SUMMARY_FILE_NAME = "summary.json"
     __DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-    def __init__(self, base_dir: str):
+    def __init__(self, parameters: dict):
+        self.parameters = parameters
+        base_dir = parameters['base_dir']
         self.summary_file = os.path.join(base_dir, ExecutionStore.__SUMMARY_FILE_NAME)
         if not os.path.exists(base_dir):
             os.mkdir(base_dir)
@@ -283,3 +305,19 @@ class ExecutionStore:
         records = self.__fetch_all_records()
         matched_records = list(filter(lambda record: record.job_id == job_id, records))
         return matched_records
+
+
+class DbExecutionStoreBase(ExecutionStoreBase):
+
+    def __init__(self, parameters: dict):
+        self.parameters = parameters
+
+    def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
+                       parameters: dict = None) -> str:
+        pass
+
+    def update_summary(self, execution_id: str, **kwargs):
+        pass
+
+    def get_job_history(self, job_id: str) -> list:
+        pass

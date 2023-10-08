@@ -22,7 +22,7 @@ class AnalysisApp:
         self.logger.info('starting application ...')
         runtime_context = self.create_runtime_context()
         application_store = ApplicationStore(runtime_context.config_file(), self.app_args)
-        execution_store = ExecutionStore(runtime_context.execution_summary_dir())
+        execution_store = ExecutionStore({'base_dir': runtime_context.execution_summary_dir()})
         Orchestrator(application_store=application_store,
                      execution_store=execution_store).orchestrate(context=runtime_context)
         self.logger.info('exiting application ...')

@@ -15,7 +15,7 @@ class JobExecutor:
         runtime_context = RuntimeContext(parameters)
 
         application_store = ApplicationStore(runtime_context.config_file(), parameters)
-        execution_store = ExecutionStore(runtime_context.execution_summary_dir())
+        execution_store = ExecutionStore({'base_dir': runtime_context.execution_summary_dir()})
 
         Orchestrator(application_store=application_store,
                      execution_store=execution_store).orchestrate(context=runtime_context)
