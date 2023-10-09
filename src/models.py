@@ -225,7 +225,7 @@ class RuntimeContext:
         self.parameters = parameters
 
     def config_file(self) -> str:
-        return self.parameters.get('config_file')
+        return self.parameters.get('app_config_file')
 
     def execution_summary_dir(self) -> str:
         return self.parameters.get('execution_summary_dir')

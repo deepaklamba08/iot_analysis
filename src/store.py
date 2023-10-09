@@ -385,3 +385,16 @@ class DbExecutionStoreBase(ExecutionStoreBase):
                 map(lambda record: DbExecutionStoreBase.__map_record(select_sequence, record), curs.fetchall()))
 
             return records
+
+
+class ExecutionStoreProvider:
+
+    @staticmethod
+    def create_execution_store(parameters: dict) -> ExecutionStoreBase:
+        execution_summary_config = parameters['execution_summary']
+        if execution_summary_config['type'] == 'file':
+            return ExecutionStore({'base_dir': execution_summary_config['execution_summary_dir']})
+        elif execution_summary_config['type'] == 'db':
+            return DbExecutionStoreBase(execution_summary_config)
+        else:
+            raise Exception(f"execution store not supported - f{execution_summary_config['type']}")
