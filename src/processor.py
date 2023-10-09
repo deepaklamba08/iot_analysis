@@ -5,7 +5,8 @@ from src.models import RuntimeContext, Application, Source, Transformation, Acti
     TransformationTemplate, ActionTemplate, DatabagRegistry
 from src.store import ApplicationStore, ExecutionStore
 from src.utils import get_logger
-from src.utils import load_module
+from src.utils import load_module, Constants
+import datetime
 
 
 class ProcessResult:
@@ -13,7 +14,7 @@ class ProcessResult:
     def __init__(self, status: bool, message: str, inference: dict = {}):
         self.status = status
         self.message = message
-        self.inference=inference
+        self.inference = inference
 
 
 class Processor(ABC):
@@ -175,7 +176,7 @@ class ApplicationProcessor(Processor):
     def __generate_metrics(self):
 
         source_metrics = list(map(lambda databag: {
-            'type':'Source',
+            'type': 'Source',
             'name': databag.name,
             'provider': databag.provider,
             'records': databag.metadata.get('row_count')
@@ -244,17 +245,23 @@ class Orchestrator:
                                                            status='executing',
                                                            message='app is running',
                                                            run_by=context.get_value('submitter', '-'),
+                                                           run_type=context.get_value('run_type', '-'),
                                                            parameters=context.parameters)
         process_result = ApplicationProcessor(application=application, runtime_context=context).run()
         if not process_result.status:
             self.execution_store.update_summary(execution_id=execution_id,
                                                 **{'status': 'Failed',
-                                                   'message': f'Execution failed with error - {process_result.message}'})
+                                                   'message': f'Execution failed with error - {process_result.message}',
+                                                   'end_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+                                                   })
             self.logger.error(f'Execution failed with error - {process_result.message}')
             raise Exception(f'Execution failed with error - {process_result.message}')
 
         self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
                                                                           'message': 'App execution completed',
-                                                                          'metrics': process_result.inference})
+                                                                          'metrics': process_result.inference,
+                                                                          'end_time': datetime.datetime.now().strftime(
+                                                                              Constants.DATE_FORMAT)
+                                                                          })
         self.logger.debug('exiting : Orchestrator.orchestrate()')
         return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)

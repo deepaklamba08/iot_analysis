@@ -5,7 +5,7 @@ import os
 
 
 class Constants:
-    pass
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class CredentialProvider(ABC):

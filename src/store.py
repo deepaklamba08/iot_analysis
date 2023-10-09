@@ -1,10 +1,11 @@
 from src.models import Application, Source, Transformation, Action, Job
 import json
-from src.utils import get_logger, replace_placeholders
+from src.utils import get_logger, replace_placeholders, Constants
 import os
 import datetime
 import uuid
 from abc import ABC, abstractmethod
+import jaydebeapi
 
 
 class ApplicationStore:
@@ -149,11 +150,13 @@ class ApplicationStore:
 
 class ExecutionDetail:
     __ATTRIBUTES = ["execution_id", "job_id", "app_id", "status", "run_by", "message", "start_time", "end_time",
-                    "run_type", "parameters", "metrics"]
+                    "update_time", "run_type", "parameters", "metrics"]
 
     def __init__(self, execution_id: str = None, job_id: str = None, app_id: str = None, status: str = None,
                  message: str = None,
-                 start_time: str = None, end_time: str = None,
+                 start_time: str = None,
+                 update_time: str = None,
+                 end_time: str = None,
                  parameters: dict = None,
                  run_by: str = None,
                  run_type: str = "adhoc",
@@ -164,6 +167,7 @@ class ExecutionDetail:
         self.status = status
         self.message = message
         self.start_time = start_time
+        self.update_time = update_time
         self.end_time = end_time
         self.parameters = parameters
         self.run_by = run_by
@@ -206,7 +210,7 @@ class ExecutionStoreBase(ABC):
 
     @abstractmethod
     def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
-                       parameters: dict = None) -> str:
+                       run_type: str, parameters: dict = None) -> str:
         pass
 
     @abstractmethod
@@ -220,7 +224,6 @@ class ExecutionStoreBase(ABC):
 
 class ExecutionStore(ExecutionStoreBase):
     __SUMMARY_FILE_NAME = "summary.json"
-    __DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     def __init__(self, parameters: dict):
         self.parameters = parameters
@@ -280,11 +283,11 @@ class ExecutionStore(ExecutionStoreBase):
         self.__save_summary(execution_detail=execution_detail, replace_existing=True)
 
     def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
-                       parameters: dict = None) -> str:
+                       run_type: str, parameters: dict = None) -> str:
         execution_id = str(uuid.uuid1())
         execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, app_id=app_id, status=status,
                                            message=message,
-                                           start_time=datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT),
+                                           start_time=datetime.datetime.now().strftime(Constants.DATE_FORMAT),
                                            parameters=parameters, run_by=run_by)
         self.__save_summary(execution_detail=execution_detail, replace_existing=False)
         return execution_id
@@ -297,7 +300,7 @@ class ExecutionStore(ExecutionStoreBase):
         existing_summary.update_attributes(
             **{
                 'execution_id': execution_id,
-                'end_time': datetime.datetime.now().strftime(ExecutionStore.__DATE_FORMAT)
+                'update_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT),
             })
         self.__update_summary(execution_detail=existing_summary)
 
@@ -308,16 +311,77 @@ class ExecutionStore(ExecutionStoreBase):
 
 
 class DbExecutionStoreBase(ExecutionStoreBase):
+    """
+    create table execution_result(
+    execution_id VARCHAR(64) not null,
+    job_id VARCHAR(64),
+    app_id VARCHAR(64),
+    status VARCHAR(64),
+    run_by VARCHAR(64),
+    message VARCHAR(256),
+    start_time VARCHAR(64),
+    update_time VARCHAR(64),
+    end_time VARCHAR(64),
+    run_type VARCHAR(64),
+    parameters VARCHAR(2048),
+    metrics VARCHAR(2048)
+    )
+    """
 
     def __init__(self, parameters: dict):
         self.parameters = parameters
+        self.conn = jaydebeapi.connect(jclassname=self.parameters['driver_class_name'],
+                                       url=self.parameters['jdbc_url'],
+                                       driver_args=self.parameters['driver_args'],
+                                       jars=self.parameters['jars'])
 
     def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
-                       parameters: dict = None) -> str:
-        pass
+                       run_type: str, parameters: dict = None) -> str:
+        execution_id = str(uuid.uuid1())
+        start_time = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+        update_time = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+        query_parameters = [execution_id, job_id, app_id, status, message, run_by, run_type, start_time, update_time,
+                            json.dumps(parameters)]
+        insert_query = 'insert into execution_result(execution_id,job_id,app_id,status,message,run_by,run_type,start_time,update_time,parameters) values(?,?,?,?,?,?,?,?,?,?)'
+        with self.conn.cursor() as curs:
+            curs.execute(insert_query, query_parameters)
+            self.conn.commit()
+        return execution_id
 
     def update_summary(self, execution_id: str, **kwargs):
-        pass
+        update_part = ', '.join(list(map(lambda key: f'{key} = ?', kwargs.keys())))
+        update_part = f'{update_part}, update_time = ?'
+
+        update_query = f'update execution_result set {update_part} where execution_id = ?'
+        query_parameters = []
+        for key in kwargs.keys():
+            if key == 'parameters' or key == 'metrics':
+                query_parameters.append(json.dumps(kwargs[key]))
+            else:
+                query_parameters.append(kwargs[key])
+        query_parameters.append(datetime.datetime.now().strftime(Constants.DATE_FORMAT))
+        query_parameters.append(execution_id)
+        with self.conn.cursor() as curs:
+            curs.execute(update_query, query_parameters)
+            self.conn.commit()
+
+    @staticmethod
+    def __map_record(select_sequence, data):
+        i = 0
+        data_dict = {}
+        while i < len(select_sequence):
+            data_dict[select_sequence[i]] = data[i]
+            i = i + 1
+
+        return ExecutionDetail.from_dict(data_dict)
 
     def get_job_history(self, job_id: str) -> list:
-        pass
+        select_sequence = ['execution_id', 'job_id', 'app_id', 'status', 'run_by', 'message', 'start_time',
+                           'update_time', 'end_time', 'run_type', 'parameters', 'metrics']
+        select_query = f"select {', '.join(select_sequence)} from execution_result where job_id = ?"
+        with self.conn.cursor() as curs:
+            curs.execute(select_query, [job_id])
+            records = list(
+                map(lambda record: DbExecutionStoreBase.__map_record(select_sequence, record), curs.fetchall()))
+
+            return records
