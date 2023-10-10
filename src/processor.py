@@ -1,5 +1,5 @@
 import copy
-import json
+import datetime
 from abc import ABC, abstractmethod
 
 from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
@@ -7,7 +7,6 @@ from src.models import RuntimeContext, Application, Source, Transformation, Acti
 from src.store import ApplicationStore, ExecutionStore, JobStore
 from src.utils import get_logger
 from src.utils import load_module, Constants
-import datetime
 
 
 class ProcessResult:
@@ -39,7 +38,9 @@ class SourceProcessor(Processor):
                                  'json': 'src.sources.JsonSource',
                                  'csv': 'src.sources.CsvSource',
                                  'mongo_db': 'src.sources.MongoDbSource',
-                                 'dev_source': 'src.sources.DevDataSource'}
+                                 'dev_source': 'src.sources.DevDataSource',
+                                 'db_source': 'src.sources.DbSource'
+                                 }
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry

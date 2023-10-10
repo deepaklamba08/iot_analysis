@@ -147,3 +147,52 @@ class DevDataSource(SourceTemplate):
         dev_data = kwargs['data']
         self.logger.debug('executing : DevDataSource.load()')
         return DataBag(name='dev_databag', provider=self.name(), data=dev_data, metadata={'row_count': len(dev_data)})
+
+
+class DbSource(SourceTemplate):
+
+    def __init__(self):
+        self.logger = get_logger()
+
+    def name(self) -> str:
+        return 'DbSource'
+
+    @staticmethod
+    def __map_to_dict(metadata, record):
+        i = 0
+        data = {}
+        while i < len(metadata):
+            col_metadata = metadata[i]
+            data[col_metadata[0]] = record[i]
+            i = i + 1
+        return data
+
+    def load(self, **kwargs) -> DataBag:
+        self.logger.debug('executing : DbSource.load()')
+        connection_config = kwargs['connection_config']
+        import jaydebeapi
+        conn = jaydebeapi.connect(jclassname=connection_config['driver_class'],
+                                  url=connection_config['jdbc_url'],
+                                  driver_args=connection_config['driver_args'],
+                                  jars=connection_config['jars'])
+
+        read_query = kwargs['read_query']
+        query_parameters = kwargs.get('query_parameters')
+        with conn.cursor() as curs:
+            self.logger.debug(f'executing query - {read_query}, query_parameters - {query_parameters}')
+            if query_parameters:
+                curs.execute(read_query, query_parameters)
+            else:
+                curs.execute(read_query)
+            records = list(
+                map(lambda record: DbSource.__map_to_dict(curs.description, record), curs.fetchall()))
+
+            curs.close()
+            conn.close()
+
+            self.logger.debug('executing : DbSource.load()')
+            return DataBag(name='db_databag', provider=self.name(), data=records,
+                           metadata={'row_count': len(records)})
+            return records
+
+
