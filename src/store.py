@@ -398,7 +398,10 @@ class DbExecutionStoreBase(ExecutionStoreBase):
         data_dict = {}
         while i < len(select_sequence):
             if select_sequence[i] == 'parameters' or select_sequence[i] == 'metrics':
-                data_dict[select_sequence[i]] = json.loads(data[i])
+                if data[i] is not None:
+                    data_dict[select_sequence[i]] = json.loads(data[i])
+                else:
+                    data_dict[select_sequence[i]] = None
             else:
                 data_dict[select_sequence[i]] = data[i]
             i = i + 1

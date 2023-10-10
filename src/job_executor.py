@@ -29,7 +29,7 @@ class JobExecutor:
         if len(jobs_to_run) > 0:
             for scheduled_job in jobs_to_run:
                 import json
-                runtime_context = self.create_runtime_context(json.loads(scheduled_job.parameters))
+                runtime_context = self.create_runtime_context(scheduled_job.parameters)
                 application_store = ApplicationStore(runtime_context.config_file(), runtime_context.parameters)
                 application = application_store.lookup_application(scheduled_job.app_id)
                 if not application:
