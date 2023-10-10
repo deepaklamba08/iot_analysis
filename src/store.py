@@ -16,10 +16,8 @@ class ApplicationStore:
         self.logger = get_logger()
 
         self.applications: dict = None
-        self.jobs: dict = None
         records = self.__load_all_records()
         self.__load_applications(records=records)
-        self.__load_jobs(records=records)
         self.logger.debug(f'number of applications - {len(self.applications)}')
 
     def lookup_application(self, application_id: str) -> Application:
@@ -29,14 +27,6 @@ class ApplicationStore:
 
     def load_all_applications(self) -> list:
         return self.applications.values()
-
-    def lookup_job(self, job_id: str) -> Job:
-        self.logger.debug(f'executing : ApplicationStore.lookup_job(job_id : {job_id})')
-        self.logger.debug(f'exiting : ApplicationStore.lookup_job()')
-        return self.jobs.get(job_id)
-
-    def load_all_jobs(self) -> list:
-        return self.jobs.values()
 
     def __load_all_records(self) -> list:
         if not self.config_file:
@@ -53,28 +43,6 @@ class ApplicationStore:
         for raw_data in raw_data_list:
             app = ApplicationStore.__parse_application(raw_data)
             self.applications[app.object_id] = app
-
-    @staticmethod
-    def __parse_job(config: dict):
-        return Job(
-            object_id=config['id'],
-            name=config['name'],
-            status=config['status'],
-            application_id=config['application_id'],
-            create_date=config.get('create_date'),
-            update_date=config.get('update_date'),
-            created_by=config.get('created_by'),
-            updated_by=config.get('updated_by'),
-            description=config['description'],
-            config=config['config'])
-
-    def __load_jobs(self, records: list):
-        self.logger.debug('loading all jobs')
-        self.jobs: dict = {}
-        raw_data_list = list(filter(lambda record: record.get('type', 'application') == 'job', records))
-        for raw_data in raw_data_list:
-            job = ApplicationStore.__parse_job(raw_data)
-            self.jobs[job.object_id] = job
 
     @staticmethod
     def __validate_fields(config: dict, fields: list, message_prefix: str = ""):
@@ -148,6 +116,52 @@ class ApplicationStore:
             config=config['config'])
 
 
+class JobStore:
+
+    def __init__(self, config_file: str):
+        self.config_file = config_file
+        self.logger = get_logger()
+        self.jobs: dict = None
+        records = self.__load_all_records()
+        self.__load_jobs(records=records)
+
+    def __load_all_records(self) -> list:
+        if not self.config_file:
+            raise Exception(f'config file is invalid - {self.config_file}')
+        with open(self.config_file, 'r') as data_stream:
+            return json.loads('\n'.join(data_stream.readlines()))
+
+    @staticmethod
+    def __parse_job(config: dict):
+        return Job(
+            object_id=config['id'],
+            name=config['name'],
+            status=config['status'],
+            application_id=config['application_id'],
+            create_date=config.get('create_date'),
+            update_date=config.get('update_date'),
+            created_by=config.get('created_by'),
+            updated_by=config.get('updated_by'),
+            description=config['description'],
+            config=config['config'])
+
+    def __load_jobs(self, records: list):
+        self.logger.debug('loading all jobs')
+        self.jobs: dict = {}
+        raw_data_list = list(filter(lambda record: record.get('type', 'application') == 'job', records))
+        for raw_data in raw_data_list:
+            job = JobStore.__parse_job(raw_data)
+            self.jobs[job.object_id] = job
+
+    def lookup_job(self, job_id: str) -> Job:
+        self.logger.debug(f'executing : ApplicationStore.lookup_job(job_id : {job_id})')
+        self.logger.debug(f'exiting : ApplicationStore.lookup_job()')
+        return self.jobs.get(job_id)
+
+    def load_all_jobs(self) -> list:
+        return self.jobs.values()
+
+
 class ExecutionDetail:
     __ATTRIBUTES = ["execution_id", "job_id", "app_id", "status", "run_by", "message", "start_time", "end_time",
                     "update_time", "run_type", "parameters", "metrics"]
@@ -215,6 +229,10 @@ class ExecutionStoreBase(ABC):
 
     @abstractmethod
     def update_summary(self, execution_id: str, **kwargs):
+        pass
+
+    @abstractmethod
+    def get_job_history_by_status(self, statuses: list) -> list:
         pass
 
     @abstractmethod
@@ -309,6 +327,10 @@ class ExecutionStore(ExecutionStoreBase):
         matched_records = list(filter(lambda record: record.job_id == job_id, records))
         return matched_records
 
+    def get_job_history_by_status(self, statuses: list) -> list:
+        records = self.__fetch_all_records()
+        return list(filter(lambda record: record.status in statuses, records))
+
 
 class DbExecutionStoreBase(ExecutionStoreBase):
     """
@@ -329,6 +351,7 @@ class DbExecutionStoreBase(ExecutionStoreBase):
     """
 
     def __init__(self, parameters: dict):
+        self.logger = get_logger()
         self.parameters = parameters
         self.conn = jaydebeapi.connect(jclassname=self.parameters['driver_class_name'],
                                        url=self.parameters['jdbc_url'],
@@ -337,6 +360,7 @@ class DbExecutionStoreBase(ExecutionStoreBase):
 
     def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str,
                        run_type: str, parameters: dict = None) -> str:
+        self.logger.debug('executing : DbExecutionStoreBase.create_summary()')
         execution_id = str(uuid.uuid1())
         start_time = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
         update_time = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
@@ -346,9 +370,11 @@ class DbExecutionStoreBase(ExecutionStoreBase):
         with self.conn.cursor() as curs:
             curs.execute(insert_query, query_parameters)
             self.conn.commit()
+        self.logger.debug('exiting : DbExecutionStoreBase.create_summary()')
         return execution_id
 
     def update_summary(self, execution_id: str, **kwargs):
+        self.logger.debug('executing : DbExecutionStoreBase.update_summary()')
         update_part = ', '.join(list(map(lambda key: f'{key} = ?', kwargs.keys())))
         update_part = f'{update_part}, update_time = ?'
 
@@ -364,18 +390,23 @@ class DbExecutionStoreBase(ExecutionStoreBase):
         with self.conn.cursor() as curs:
             curs.execute(update_query, query_parameters)
             self.conn.commit()
+        self.logger.debug('exiting : DbExecutionStoreBase.update_summary()')
 
     @staticmethod
     def __map_record(select_sequence, data):
         i = 0
         data_dict = {}
         while i < len(select_sequence):
-            data_dict[select_sequence[i]] = data[i]
+            if select_sequence[i] == 'parameters' or select_sequence[i] == 'metrics':
+                data_dict[select_sequence[i]] = json.loads(data[i])
+            else:
+                data_dict[select_sequence[i]] = data[i]
             i = i + 1
 
         return ExecutionDetail.from_dict(data_dict)
 
     def get_job_history(self, job_id: str) -> list:
+        self.logger.debug(f'executing : DbExecutionStoreBase.get_job_history(job_id : {job_id})')
         select_sequence = ['execution_id', 'job_id', 'app_id', 'status', 'run_by', 'message', 'start_time',
                            'update_time', 'end_time', 'run_type', 'parameters', 'metrics']
         select_query = f"select {', '.join(select_sequence)} from execution_result where job_id = ?"
@@ -384,6 +415,23 @@ class DbExecutionStoreBase(ExecutionStoreBase):
             records = list(
                 map(lambda record: DbExecutionStoreBase.__map_record(select_sequence, record), curs.fetchall()))
 
+            return records
+
+        self.logger.debug(f'exiting : DbExecutionStoreBase.get_job_history()')
+
+    def get_job_history_by_status(self, statuses: list) -> list:
+        self.logger.debug(f'executing : DbExecutionStoreBase.get_job_history_by_status(statuses : {statuses})')
+        select_sequence = ['execution_id', 'job_id', 'app_id', 'status', 'run_by', 'message', 'start_time',
+                           'update_time', 'end_time', 'run_type', 'parameters', 'metrics']
+
+        select_query = f"select {', '.join(select_sequence)} from execution_result where status in ({','.join(list(map(lambda r: '?', statuses)))})"
+        with self.conn.cursor() as curs:
+            self.logger.debug(f'executing query - {select_query}')
+            curs.execute(select_query, statuses)
+            records = list(
+                map(lambda record: DbExecutionStoreBase.__map_record(select_sequence, record), curs.fetchall()))
+
+            self.logger.debug(f'exiting : DbExecutionStoreBase.get_job_history_by_status()')
             return records
 
 

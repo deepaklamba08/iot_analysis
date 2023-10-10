@@ -1,9 +1,10 @@
 import copy
+import json
 from abc import ABC, abstractmethod
 
 from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
-    TransformationTemplate, ActionTemplate, DatabagRegistry
-from src.store import ApplicationStore, ExecutionStore
+    TransformationTemplate, ActionTemplate, DatabagRegistry, Job
+from src.store import ApplicationStore, ExecutionStore, JobStore
 from src.utils import get_logger
 from src.utils import load_module, Constants
 import datetime
@@ -227,12 +228,42 @@ class AppExecutionResult:
 
 class Orchestrator:
 
-    def __init__(self, application_store: ApplicationStore, execution_store: ExecutionStore):
+    def __init__(self, application_store: ApplicationStore, execution_store: ExecutionStore, job_store: JobStore):
         self.application_store = application_store
         self.execution_store = execution_store
+        self.job_store = job_store
         self.logger = get_logger()
 
-    def orchestrate(self, context: RuntimeContext) -> AppExecutionResult:
+    def schedule_job(self, job: Job, submitter: str = '-', run_type: str = '-', parameters: dict = {}) -> str:
+        self.logger.debug('executing : Orchestrator.schedule()')
+
+        application = self.application_store.lookup_application(job.application_id)
+        if not application:
+            self.logger.error(f'application not found by id - {job.application_id}')
+            raise Exception(f'application not found by id - {job.application_id}')
+
+        execution_id = self.execution_store.create_summary(job_id=job.object_id,
+                                                           app_id=job.application_id,
+                                                           status='scheduled',
+                                                           message='app is scheduled',
+                                                           run_by=submitter,
+                                                           run_type=run_type,
+                                                           parameters=parameters)
+
+        self.logger.debug('exiting : Orchestrator.schedule()')
+        return execution_id
+
+    def run_scheduled_application(self, execution_id: str,
+                        application: Application,
+                        context: RuntimeContext) -> AppExecutionResult:
+        self.logger.debug(f'executing : Orchestrator.run_application()')
+
+        self.__run_job(execution_id=execution_id,
+                       application=application,
+                       runtime_context=context)
+        self.logger.debug(f'exiting : Orchestrator.run_application()')
+
+    def run_application(self, context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug('executing : Orchestrator.orchestrate()')
 
         application = self.application_store.lookup_application(context.app_id())
@@ -247,7 +278,13 @@ class Orchestrator:
                                                            run_by=context.get_value('submitter', '-'),
                                                            run_type=context.get_value('run_type', '-'),
                                                            parameters=context.parameters)
-        process_result = ApplicationProcessor(application=application, runtime_context=context).run()
+
+        self.__run_job(execution_id=execution_id, application=application, runtime_context=context)
+        exe_result = self.logger.debug('exiting : Orchestrator.orchestrate()')
+        return exe_result
+
+    def __run_job(self, execution_id: str, application: Application, runtime_context: RuntimeContext):
+        process_result = ApplicationProcessor(application=application, runtime_context=runtime_context).run()
         if not process_result.status:
             self.execution_store.update_summary(execution_id=execution_id,
                                                 **{'status': 'Failed',
@@ -263,5 +300,4 @@ class Orchestrator:
                                                                           'end_time': datetime.datetime.now().strftime(
                                                                               Constants.DATE_FORMAT)
                                                                           })
-        self.logger.debug('exiting : Orchestrator.orchestrate()')
         return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)

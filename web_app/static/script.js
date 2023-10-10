@@ -336,7 +336,10 @@ function fetchCurrentStatus(jobName){
           ["Message",response_data.message]];
           populateDataInTable(DATA_TABLE_NAME,DATA_TABLE_BODY_NAME,["Property","Value"],data,false)
 
+          if (response_data.metrics != null){
           var metricsTableData = new Array();
+
+
           for (let i = 0 ; i <response_data.metrics.databag_metrics.length ; i++) {
            var databagMetric = response_data.metrics.databag_metrics[i]
            metricsTableData[i] = [databagMetric.type,databagMetric.name,databagMetric.provider,databagMetric.records];
@@ -344,6 +347,8 @@ function fetchCurrentStatus(jobName){
 
           createHTMLTable(DATA_TABLE_PANEL_ID,RUN_METRICS_TABLE_ID,RUN_METRICS_TABLE_BODY_ID,RUN_METRICS_TABLE_PARA_ID,RUN_METRICS_TABLE_PARA_TEXT,
             ["Type","Name","Provider","Records"],metricsTableData)
+
+          }
 
           setLabel(APP_DETAILS_LABEL_NAME,"Current status: "+jobName)
            }

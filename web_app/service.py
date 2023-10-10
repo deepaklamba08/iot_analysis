@@ -1,4 +1,4 @@
-from src.store import ApplicationStore, ExecutionStore
+from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
 from src.models import Application, Source, Transformation, Action, Job
 from src.job_executor import JobExecutor
 from src.utils import get_logger
@@ -10,11 +10,8 @@ class WebAppConfig:
     def __init__(self, parameters: dict):
         self.parameters = parameters
 
-    def app_config_file(self) -> str:
-        return self.parameters.get('app_config_file')
-
-    def execution_summary_dir(self) -> str:
-        return self.parameters.get('execution_summary_dir')
+    def analysis_app_config(self) -> str:
+        return self.parameters.get('analysis_app_config')
 
     def get_value(self, key: str):
         return self.parameters.get(key)
@@ -46,13 +43,25 @@ class WebAppService:
     def __init__(self):
         self.logger = get_logger()
 
+    def __load_config(self, config_file_path):
+        import yaml
+        with open(config_file_path, 'r') as stream:
+            try:
+                yaml_config = yaml.safe_load(stream)
+                return yaml_config
+            except yaml.YAMLError as exc:
+                raise Exception('error occurred while reading config file', exc)
+
     def initialize(self, config: WebAppConfig):
         self.config = config
-        self.application_store = ApplicationStore(config.app_config_file())
-        self.execution_store = ExecutionStore(config.execution_summary_dir())
+        analysis_app_config = self.__load_config(config.analysis_app_config())['app']
+        self.application_store = ApplicationStore(analysis_app_config['app_config_file'])
+        self.job_store = JobStore(analysis_app_config['app_config_file'])
+        self.execution_store = ExecutionStoreProvider.create_execution_store(analysis_app_config)
+        self.job_executor = JobExecutor(config.analysis_app_config())
 
     def __fetch_job_names(self) -> list:
-        active_jobs = list(filter(lambda app: app.status, self.application_store.load_all_jobs()))
+        active_jobs = list(filter(lambda app: app.status, self.job_store.load_all_jobs()))
         job_data = {}
         for active_job in active_jobs:
             job_data[active_job.name] = active_job.object_id
@@ -61,7 +70,7 @@ class WebAppService:
 
     def list_all_jobs(self) -> list:
         self.logger.debug("executing : WebAppService.list_all_jobs()")
-        jobs = list(map(lambda job: WebAppService.__map_job(job), self.application_store.load_all_jobs()))
+        jobs = list(map(lambda job: WebAppService.__map_job(job), self.job_store.load_all_jobs()))
         self.logger.debug("exiting : WebAppService.list_all_jobs()")
         if len(jobs) == 0:
             return APIResponse(status_code=204, message="No jobs found").to_response()
@@ -76,7 +85,7 @@ class WebAppService:
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Application not found for job: {job_name}").to_response()
 
-        job_data = self.application_store.lookup_job(job_id=job_details[job_name])
+        job_data = self.job_store.lookup_job(job_id=job_details[job_name])
         application = self.application_store.lookup_application(application_id=job_data.application_id)
         self.logger.debug("exiting : WebAppService.application_details()")
         if application:
@@ -93,7 +102,7 @@ class WebAppService:
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
 
-        job_data = self.application_store.lookup_job(job_id=job_details[job_name])
+        job_data = self.job_store.lookup_job(job_id=job_details[job_name])
         if job_data:
             return APIResponse(status_code=200,
                                data=WebAppService.__map_job(job_data)).to_response()
@@ -108,32 +117,22 @@ class WebAppService:
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
 
-        job_data = self.application_store.lookup_job(job_id=job_details[job_name])
-        self.logger.debug(f'job data - {job_data}')
-        job_parameters_existing = copy.copy(job_data.job_parameters())
-        job_parameters_existing['app_id'] = job_data.object_id
-        job_parameters_existing['job_id'] = job_details[job_name]
-        job_parameters_existing['submitter'] = 'UI'
-        job_parameters_existing['config_file'] = self.config.app_config_file()
-        job_parameters_existing['execution_summary_dir'] = self.config.execution_summary_dir()
-
-        for parameter_name in job_parameters.keys():
-            job_parameters_existing[parameter_name] = job_parameters[parameter_name]
-
-        job_executor = JobExecutor()
-        job_executor.execute_job(job_parameters_existing)
+        self.job_executor.schedule_job(
+            job_id=job_details[job_name], submitter='UI',
+            parameters=job_parameters
+        )
 
         self.logger.debug("exiting : WebAppService.run_job()")
         return [f"started - {job_name}"]
 
     def jobs_history(self, job_name: str, is_current=False):
+        self.logger.debug(f"executing : WebAppService.jobs_history(job_name : {job_name}, is_current : {is_current})")
         job_data = self.__fetch_job_names()
         job_id = job_data[job_name]
         if not job_id:
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
-
         all_history = list(map(lambda record: WebAppService.__map_job_history(record),
-                               self.execution_store.get_job_history(job_id)))
+                               self.execution_store.get_job_history(job_id = job_id)))
 
         if len(all_history) == 0:
             return APIResponse(status_code=204, message=f"Job history not found for job: {job_name}").to_response()
