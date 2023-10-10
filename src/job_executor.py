@@ -1,7 +1,7 @@
 from src.processor import Orchestrator
 from src.models import RuntimeContext
 from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
-from src.utils import get_logger
+from src.utils import get_logger,read_config_file
 
 
 class JobExecutor:
@@ -9,19 +9,10 @@ class JobExecutor:
     def __init__(self, config_file: str):
         self.logger = get_logger()
         self.config_file = config_file
-        yaml_config = self.__read_config_file()
+        yaml_config = read_config_file(self.config_file)
         self.app_config = yaml_config['app']
         self.job_store = JobStore(self.app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.app_config)
-
-    def __read_config_file(self):
-        import yaml
-        with open(self.config_file, 'r') as stream:
-            try:
-                yaml_config = yaml.safe_load(stream)
-                return yaml_config
-            except yaml.YAMLError as exc:
-                raise Exception('error occurred while reading config file', exc)
 
     def create_runtime_context(self, parameters) -> RuntimeContext:
         import copy

@@ -6,7 +6,7 @@ sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 from src.processor import Orchestrator
 from src.models import RuntimeContext
 from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
-from src.utils import get_logger
+from src.utils import get_logger,read_config_file
 
 
 class AnalysisApp:
@@ -16,20 +16,11 @@ class AnalysisApp:
         self.logger = get_logger()
 
     def create_runtime_context(self) -> RuntimeContext:
-        yaml_config = self.__read_config_file()
+        yaml_config = read_config_file(self.app_args['config_file'])
         app_config = yaml_config['app']
         for key in self.app_args.keys():
             app_config[key] = self.app_args[key]
         return RuntimeContext(app_config)
-
-    def __read_config_file(self):
-        import yaml
-        with open(self.app_args['config_file'], 'r') as stream:
-            try:
-                yaml_config = yaml.safe_load(stream)
-                return yaml_config
-            except yaml.YAMLError as exc:
-                raise Exception('error occurred while reading config file', exc)
 
     def run(self):
         self.logger.info('starting application ...')
