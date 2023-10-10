@@ -72,3 +72,13 @@ def replace_placeholders(raw_data: str, parameters: dict) -> str:
     for key, value in parameters.items():
         raw_data = raw_data.replace('${' + key + '}', f'{value}')
     return raw_data
+
+
+def read_config_file(config_file_path: str):
+    import yaml
+    with open(config_file_path, 'r') as stream:
+        try:
+            yaml_config = yaml.safe_load(stream)
+            return yaml_config
+        except yaml.YAMLError as exc:
+            raise Exception('error occurred while reading config file', exc)

@@ -7,27 +7,17 @@ if 'PATH_TO_WEB_APP' in os.environ.keys():
 from flask import Flask, request, json
 from flask import render_template
 from web_app.service import WebAppService, WebAppConfig
+from src.utils import read_config_file
 import os
-
-
-def load_config(config_file_path):
-    import yaml
-    with open(config_file_path, 'r') as stream:
-        try:
-            yaml_config = yaml.safe_load(stream)
-            return yaml_config
-        except yaml.YAMLError as exc:
-            raise Exception('error occurred while reading config file', exc)
 
 
 def create_app(arguments: list):
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
-    yaml_config = load_config(app_arguments['config_file'])
+    yaml_config = read_config_file(app_arguments['config_file'])
     config = WebAppConfig(parameters=yaml_config['app'])
     app = Flask(config.get_value(key='app_name', default=__name__))
 
-    service = WebAppService()
-    service.initialize(config=config)
+    service = WebAppService(config)
     app._static_folder = os.path.abspath(config.get_value(key='web_app_static_folder', default='static/'))
     app.debug = config.get_value(key='is_debug', default=True)
 

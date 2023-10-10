@@ -3,7 +3,7 @@ from src.models import Application, Source, Transformation, Action, Job
 from src.job_executor import JobExecutor
 from src.utils import get_logger
 import copy
-
+from src.utils import read_config_file
 
 class WebAppConfig:
 
@@ -40,24 +40,13 @@ class APIResponse:
 
 class WebAppService:
 
-    def __init__(self):
+    def __init__(self, config: WebAppConfig):
         self.logger = get_logger()
-
-    def __load_config(self, config_file_path):
-        import yaml
-        with open(config_file_path, 'r') as stream:
-            try:
-                yaml_config = yaml.safe_load(stream)
-                return yaml_config
-            except yaml.YAMLError as exc:
-                raise Exception('error occurred while reading config file', exc)
-
-    def initialize(self, config: WebAppConfig):
         self.config = config
-        analysis_app_config = self.__load_config(config.analysis_app_config())['app']
-        self.application_store = ApplicationStore(analysis_app_config['app_config_file'])
-        self.job_store = JobStore(analysis_app_config['app_config_file'])
-        self.execution_store = ExecutionStoreProvider.create_execution_store(analysis_app_config)
+        self.analysis_app_config = read_config_file(config.analysis_app_config())['app']
+        self.application_store = ApplicationStore(self.analysis_app_config['app_config_file'])
+        self.job_store = JobStore(self.analysis_app_config['app_config_file'])
+        self.execution_store = ExecutionStoreProvider.create_execution_store(self.analysis_app_config)
         self.job_executor = JobExecutor(config.analysis_app_config())
 
     def __fetch_job_names(self) -> list:
