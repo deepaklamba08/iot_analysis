@@ -72,7 +72,14 @@ function addJobs() {
        jobNamesDropDown.remove(i);
     }
 
-    fetch(GET_ALL_JOBS_URL)
+    const options = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    fetch(GET_ALL_JOBS_URL,options)
     .then(response => response.json())
     .then(response_object => {
         if(response_object.status_code!=200){

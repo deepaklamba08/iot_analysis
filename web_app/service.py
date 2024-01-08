@@ -16,6 +16,9 @@ class WebAppConfig:
     def get_value(self, key: str):
         return self.parameters.get(key)
 
+    def get_property(self, key: str):
+        return self.parameters.get(key)
+
     def get_value(self, key: str, default):
         return self.parameters.get(key, default)
 

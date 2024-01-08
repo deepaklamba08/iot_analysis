@@ -1,7 +1,13 @@
+import sys
+import os
+
+if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
+    sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
+
 from src.processor import Orchestrator
 from src.models import RuntimeContext
 from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
-from src.utils import get_logger,read_config_file
+from src.utils import get_logger, read_config_file
 
 
 class JobExecutor:
@@ -70,3 +76,17 @@ class JobExecutor:
 
         orchestrator.schedule_job(job=job, submitter=submitter, run_type=run_type, parameters=job_parameters)
         self.logger.debug('exiting : JobExecutor.execute_job()')
+
+
+if __name__ == '__main__':
+    arguments = sys.argv
+    arguments = arguments[1:]
+    if len(arguments) == 0 or len(arguments) % 2 != 0:
+        raise Exception('invalid arguments')
+
+    app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
+    if 'config_file' not in app_arguments.keys():
+        raise Exception('config_file not provided in parameters')
+
+    job_executor = JobExecutor(config_file=app_arguments['config_file'])
+    job_executor.execute_jobs()

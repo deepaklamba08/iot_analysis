@@ -15,7 +15,8 @@ def create_app(arguments: list):
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
     yaml_config = read_config_file(app_arguments['config_file'])
     config = WebAppConfig(parameters=yaml_config['app'])
-    app = Flask(config.get_value(key='app_name', default=__name__))
+    #app = Flask(config.get_value(key='app_name', default=__name__),template_folder='E:\work\iot_analysis\web_app\\templates')
+    app = Flask(config.get_value(key='app_name', default=__name__),template_folder=config.get_property('template_folder'))
 
     service = WebAppService(config)
     app._static_folder = os.path.abspath(config.get_value(key='web_app_static_folder', default='static/'))
@@ -56,4 +57,6 @@ def create_app(arguments: list):
     def job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
 
+
     return app
+

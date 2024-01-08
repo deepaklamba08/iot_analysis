@@ -1,7 +1,8 @@
 import os
 import sys
 
-sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
+if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
+    sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 
 from src.processor import Orchestrator
 from src.models import RuntimeContext
@@ -37,5 +38,8 @@ class AnalysisApp:
 if __name__ == '__main__':
     arguments = sys.argv
     arguments = arguments[1:]
+    if len(arguments) == 0 or len(arguments) % 2 != 0:
+        raise Exception('invalid arguments')
+
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
     AnalysisApp(app_arguments).run()

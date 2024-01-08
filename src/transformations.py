@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 from src.models import DataBag, TransformationTemplate, DatabagLookup
 from src.utils import get_logger
+import json
 
 
 def select_databag(parameters: dict, databag_lookup: DatabagLookup) -> DataBag:
@@ -28,31 +29,31 @@ class DummyTransformation(TransformationTemplate):
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : DummyTransformation.execute()')
         data = kwargs['data']
-        return DataBag(name='dummy_databag', provider=self.name(), data=data,metadata={'row_count': len(data)})
+        return DataBag(name='dummy_databag', provider=self.name(), data=data, metadata={'row_count': len(data)})
 
 
-class BaseFieldTransformation(TransformationTemplate):
+class BaseRecordTransformation(TransformationTemplate):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
     @abstractmethod
-    def select_or_reject(self, item: dict, fields: list) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
         pass
 
     def execute(self, **kwargs) -> DataBag:
         self.logger.debug('executing : BaseFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_lookup)
+        databag = select_databag(kwargs, self.databag_lookup)
 
-        fields = kwargs['fields']
-        output = list(map(lambda item: self.select_or_reject(item, fields), databag.data))
+        output = list(map(lambda item: self.apply(item, **kwargs), databag.data))
 
         self.logger.debug('exiting : BaseFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,
+                       metadata={'row_count': len(output)})
 
 
-class FieldSelectorTransformation(BaseFieldTransformation):
+class FieldSelectorTransformation(BaseRecordTransformation):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
@@ -61,14 +62,15 @@ class FieldSelectorTransformation(BaseFieldTransformation):
     def name(self) -> str:
         return 'FieldSelectorTransformation'
 
-    def select_or_reject(self, item: dict, fields: list) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
+        fields = kwargs['fields']
         op = {}
         for field in fields:
             op[field] = item.get(field, None)
         return op
 
 
-class FieldRejectTransformation(BaseFieldTransformation):
+class FieldRejectTransformation(BaseRecordTransformation):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
@@ -77,7 +79,8 @@ class FieldRejectTransformation(BaseFieldTransformation):
     def name(self) -> str:
         return 'FieldRejectTransformation'
 
-    def select_or_reject(self, item: dict, fields: list) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
+        fields = kwargs['fields']
         op = {}
         for key in item.keys():
             if key not in fields:
@@ -85,7 +88,7 @@ class FieldRejectTransformation(BaseFieldTransformation):
         return op
 
 
-class AddConstantFieldTransformation(TransformationTemplate):
+class AddConstantFieldTransformation(BaseRecordTransformation):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
@@ -94,25 +97,14 @@ class AddConstantFieldTransformation(TransformationTemplate):
     def name(self) -> str:
         return 'AddConstantFieldTransformation'
 
-    @staticmethod
-    def add_field(item: dict, fields_to_add: list) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
+        fields_to_add = kwargs['fields']
         for field in fields_to_add:
-            for key in field:
-                item[key] = field[key]
+           item[field] = fields_to_add[field]
         return item
 
-    def execute(self, **kwargs) -> DataBag:
-        self.logger.debug('executing : AddConstantFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_lookup)
 
-        fields = kwargs['fields']
-        output = list(map(lambda item: AddConstantFieldTransformation.add_field(item, fields), databag.data))
-
-        self.logger.debug('exiting : AddConstantFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
-
-
-class RenameFieldTransformation(TransformationTemplate):
+class RenameFieldTransformation(BaseRecordTransformation):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
@@ -121,8 +113,8 @@ class RenameFieldTransformation(TransformationTemplate):
     def name(self) -> str:
         return 'RenameFieldTransformation'
 
-    @staticmethod
-    def rename_field(item: dict, fields_to_rename: dict) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
+        fields_to_rename = kwargs['fields']
         op = {}
         for field in item.keys():
             if field in fields_to_rename.keys():
@@ -131,18 +123,8 @@ class RenameFieldTransformation(TransformationTemplate):
                 op[field] = item[field]
         return op
 
-    def execute(self, **kwargs) -> DataBag:
-        self.logger.debug('executing : RenameFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_lookup)
 
-        fields = kwargs['fields']
-        output = list(map(lambda item: RenameFieldTransformation.rename_field(item, fields), databag.data))
-
-        self.logger.debug('exiting : RenameFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
-
-
-class ConcatFieldTransformation(TransformationTemplate):
+class ConcatFieldTransformation(BaseRecordTransformation):
 
     def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
@@ -151,8 +133,10 @@ class ConcatFieldTransformation(TransformationTemplate):
     def name(self) -> str:
         return 'ConcatFieldTransformation'
 
-    @staticmethod
-    def concat_field(item: dict, source_fields: list, output_field_name: str, seperator: str) -> dict:
+    def apply(self, item: dict, **kwargs) -> dict:
+        source_fields = kwargs['fields']
+        output_field_name = kwargs['output_field']
+        seperator = kwargs.get('seperator', '~')
         source_values = list(map(lambda field: item.get(field), source_fields))
         if None in source_values:
             item[output_field_name] = None
@@ -160,16 +144,58 @@ class ConcatFieldTransformation(TransformationTemplate):
             item[output_field_name] = seperator.join(source_values)
         return item
 
+
+class RecordToJsonTransformation(BaseRecordTransformation):
+
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.logger = get_logger()
+        self.databag_lookup = databag_lookup
+
+    def name(self) -> str:
+        return 'RecordToJsonTransformation'
+
+    def apply(self, item: dict, **kwargs) -> dict:
+        return {'root': json.dumps(item)}
+
+
+class BaseAttributeTransformation(TransformationTemplate):
+
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.logger = get_logger()
+        self.databag_lookup = databag_lookup
+
+    @abstractmethod
+    def process_attribute(self, attribute_value):
+        pass
+
+    def __process_record(self, record: dict, attribute) -> dict:
+        data = []
+        for field in record.keys():
+            if field == attribute:
+                data[field] = self.process_attribute(record[attribute])
+            else:
+                data[field] = record[field]
+
     def execute(self, **kwargs) -> DataBag:
-        self.logger.debug('executing : ConcatFieldTransformation.execute()')
-        databag = select_databag(kwargs,self.databag_lookup)
+        self.logger.debug('executing : BaseAttributeTransformation.execute()')
+        databag = select_databag(kwargs, self.databag_lookup)
 
-        fields = kwargs['fields']
-        output_field_name = kwargs['output_field']
-        seperator = kwargs.get('seperator', '~')
-        output = list(
-            map(lambda item: ConcatFieldTransformation.concat_field(item, fields, output_field_name, seperator),
-                databag.data))
+        attribute = kwargs['attribute']
+        output = list(map(lambda item: self.__process_record(item, attribute), databag.data))
 
-        self.logger.debug('exiting : ConcatFieldTransformation.execute()')
-        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,metadata={'row_count': len(output)})
+        self.logger.debug('exiting : BaseAttributeTransformation.execute()')
+        return DataBag(name=f'{self.name()}_databag', provider=self.name(), data=output,
+                       metadata={'row_count': len(output)})
+
+
+class AttributeToJsonTransformation(BaseAttributeTransformation):
+
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.logger = get_logger()
+        self.databag_lookup = databag_lookup
+
+    def name(self) -> str:
+        return 'AttributeToJsonTransformation'
+
+    def process_attribute(self, attribute_value):
+        pass

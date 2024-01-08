@@ -76,6 +76,13 @@ def replace_placeholders(raw_data: str, parameters: dict) -> str:
 
 def read_config_file(config_file_path: str):
     import yaml
+
+    if not os.path.isfile(config_file_path):
+        raise Exception(f'not a file - {config_file_path}')
+
+    if not os.path.exists(config_file_path):
+        raise Exception(f'file not exists - {config_file_path}')
+
     with open(config_file_path, 'r') as stream:
         try:
             yaml_config = yaml.safe_load(stream)
