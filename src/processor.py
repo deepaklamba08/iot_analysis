@@ -87,7 +87,8 @@ class TransformationProcessor(Processor):
                                          'field_reject': 'src.transformations.FieldRejectTransformation',
                                          'add_field': 'src.transformations.AddConstantFieldTransformation',
                                          'rename_field': 'src.transformations.RenameFieldTransformation',
-                                         'concat_field': 'src.transformations.ConcatFieldTransformation'}
+                                         'concat_field': 'src.transformations.ConcatFieldTransformation',
+                                         'record_to_json':'src.transformations.RecordToJsonTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
