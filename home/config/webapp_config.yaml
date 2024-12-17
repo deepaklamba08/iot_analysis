@@ -5,3 +5,4 @@ app:
   analysis_app_config: path to iot_analysis_config.yaml
   web_app_static_folder: path to iot_analysis\web_app\static
   template_folder: path to iot_analysis\web_app\templates
+  log_file: path to log file

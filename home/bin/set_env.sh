@@ -1,4 +1,4 @@
-export PATH_TO_ANALYSIS_APP="/e/work/iot_analysis/"
+export PATH_TO_ANALYSIS_APP="/e/work/iot_analysis"
 export PYTHON_HOME="/e/work/python_env/Scripts/python.exe"
 
 export PYTHON_ANALYSIS_APP_NAME="${PATH_TO_ANALYSIS_APP}/src/analysis_app.py"

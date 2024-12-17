@@ -9,14 +9,20 @@ from flask import render_template
 from web_app.service import WebAppService, WebAppConfig
 from src.utils import read_config_file
 import os
+from src.utils import get_logger
 
 
 def create_app(arguments: list):
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
     yaml_config = read_config_file(app_arguments['config_file'])
     config = WebAppConfig(parameters=yaml_config['app'])
-    app = Flask(config.get_value(key='app_name', default=__name__),template_folder='E:\work\iot_analysis\web_app\\templates')
-    #app = Flask(config.get_value(key='app_name', default=__name__),template_folder=config.get_property('template_folder'))
+
+    logger = get_logger(log_file_name=config.get_property('log_file'))
+    logger.info('starting web app ...')
+
+    # template_folder = f"{os.environ['PATH_TO_WEB_APP']}\web_app\\templates"
+    template_folder = config.get_property('template_folder')
+    app = Flask(config.get_value(key='app_name', default=__name__), template_folder=template_folder)
 
     service = WebAppService(config)
     app._static_folder = os.path.abspath(config.get_value(key='web_app_static_folder', default='static/'))
@@ -57,6 +63,4 @@ def create_app(arguments: list):
     def job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
 
-
     return app
-
