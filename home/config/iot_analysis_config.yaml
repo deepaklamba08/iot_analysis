@@ -1,0 +1,5 @@
+app:
+  app_config_file: path to iot_analysis.json
+  execution_summary:
+    type: file
+    execution_summary_dir: E:\work\iot_analysis\test\summary
