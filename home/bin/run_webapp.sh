@@ -5,14 +5,6 @@ source set_env.sh
 
 PID_FILE=$PATH_TO_ANALYSIS_APP/tmp/app.pid
 
-if [ -d "$PATH_TO_ANALYSIS_APP/tmp" ]; then
-    log_message "INFO" "PID directory exists."
-else
-    log_message "INFO" "Directory does not exist."
-    mkdir -p $PATH_TO_ANALYSIS_APP/tmp
-    touch $PID_FILE
-fi
-
 log_message() {
   LEVEL=$1
   MESSAGE=$2
@@ -178,6 +170,15 @@ run_app(){
   fi
 
 }
+
+
+if [ -d "$PATH_TO_ANALYSIS_APP/tmp" ]; then
+    log_message "INFO" "PID directory exists."
+else
+    log_message "INFO" "Directory does not exist."
+    mkdir -p $PATH_TO_ANALYSIS_APP/tmp
+    touch $PID_FILE
+fi
 
 parse_cli "$*"
 set_parameters_if_absent
