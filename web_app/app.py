@@ -17,10 +17,6 @@ def create_app(arguments: list):
     yaml_config = read_config_file(app_arguments['config_file'])
     config = WebAppConfig(parameters=yaml_config['app'])
 
-    logger = get_logger(log_file_name=config.get_property('log_file'))
-    logger.info('starting web app ...')
-
-    # template_folder = f"{os.environ['PATH_TO_WEB_APP']}\web_app\\templates"
     template_folder = config.get_property('template_folder')
     app = Flask(config.get_value(key='app_name', default=__name__), template_folder=template_folder)
 
