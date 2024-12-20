@@ -17,7 +17,8 @@ log_message() {
 print_usage(){
   log_message "INFO" "Usage"
   echo "+-------------------------Analysis App Parameters----------------------+"
-  echo "| -cf or -config          : Config file                             |"
+  echo "| -a or -action           : Action                                     |"
+  echo "| -cf or -config          : Config file                                |"
   echo "| -su or -submitter       : Application runner                         |"
   echo "| Any key value pair      : Key value pair input to the App            |"
   echo "+----------------------------------------------------------------------+"
@@ -67,6 +68,13 @@ parse_cli() {
       -cf)
         CONFIG_FILE_PATH=${CLI_ARRAY[counter]}
       ;;
+      -action)
+        ACTION=${CLI_ARRAY[counter]}
+      ;;
+      -a)
+        ACTION=${CLI_ARRAY[counter]}
+      ;;
+
       -submitter)
         SUBMITTER=${CLI_ARRAY[counter]}
       ;;
@@ -89,6 +97,7 @@ parse_cli() {
 }
 
 log_parameters(){
+  log_message "INFO" "Action - $ACTION"
   log_message "INFO" "Config file path - $CONFIG_FILE_PATH"
   log_message "INFO" "Submitter - $SUBMITTER"
 }
@@ -110,7 +119,7 @@ set_parameters_if_absent(){
 }
 
 validate_parameters(){
-  MANDATORY_PARAMETERS=(CONFIG_FILE_PATH)
+  MANDATORY_PARAMETERS=(CONFIG_FILE_PATH ACTION)
   for parameter_name in "${MANDATORY_PARAMETERS[@]}"
   do
     parameter_value="${!parameter_name}"
@@ -124,13 +133,22 @@ validate_parameters(){
   done
 }
 
+orchestrate(){
+  if [[ "$ACTION" = "start" ]]; then
+      run_app
+  elif [[ "$ACTION" = "stop" ]]; then
+
+  else
+    log_message "ERROR" "Action must be either start or stop"
+  fi
+}
+
 run_app(){
   log_message "INFO" "Running app"
   CLI_INPUT_STRING="['config_file','$CONFIG_FILE_PATH', 'submitter', '$SUBMITTER']" # ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
   #SHELL_CMD="$PYTHON_HOME $PYTHON_WEB_APP_NAME $CLI_INPUT_STRING"
   SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --debug"
-  #SHELL_CMD="$PYTHON_HOME -m flask --app \"web_app.app.py:create_app($CLI_INPUT_STRING)\" run --debug"
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
@@ -153,4 +171,4 @@ parse_cli "$*"
 set_parameters_if_absent
 validate_parameters
 log_parameters
-run_app
+orchestrate
