@@ -94,7 +94,7 @@
         "status": true,
         "type": "json",
         "config": {
-          "file_path": "../data/sample_messages.json"
+          "file_path": "${file_path}"
         }
       }
     ],
@@ -118,5 +118,31 @@
         }
       }
     ]
+  },
+  {
+    "id": "1",
+    "name": "app-1-job",
+    "description": "application 1 job",
+    "status": true,
+    "application_id": "1",
+    "type": "job",
+    "config": {
+      "parameters": {
+        "lookup_path": "device_lookup.json"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "name": "app-2-job",
+    "description": "application 2 job",
+    "status": true,
+    "application_id": "1",
+    "type": "job",
+    "config": {
+      "parameters": {
+        "file_path": "device_lookup.json"
+      }
+    }
   }
 ]
