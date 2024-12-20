@@ -155,8 +155,7 @@ run_app(){
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
-  #eval $SHELL_CMD
-  nohup $SHELL_CMD &
+  eval $SHELL_CMD
   APP_RUN_STATUS=$?
   $APP_RUN_STATUS > $PID_FILE
   log_message "INFO" "App run status code - $APP_RUN_STATUS"
