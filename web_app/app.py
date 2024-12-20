@@ -9,8 +9,6 @@ from flask import render_template
 from web_app.service import WebAppService, WebAppConfig
 from src.utils import read_config_file
 import os
-from src.utils import get_logger
-
 
 def create_app(arguments: list):
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
