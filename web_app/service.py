@@ -5,6 +5,7 @@ from src.utils import get_logger
 import copy
 from src.utils import read_config_file
 
+
 class WebAppConfig:
 
     def __init__(self, parameters: dict):
@@ -59,6 +60,10 @@ class WebAppService:
             job_data[active_job.name] = active_job.object_id
 
         return job_data
+
+    def status(self) -> str:
+        self.logger.debug("executing : WebAppService.status()")
+        return "running"
 
     def list_all_jobs(self) -> list:
         self.logger.debug("executing : WebAppService.list_all_jobs()")
@@ -124,7 +129,7 @@ class WebAppService:
         if not job_id:
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
         all_history = list(map(lambda record: WebAppService.__map_job_history(record),
-                               self.execution_store.get_job_history(job_id = job_id)))
+                               self.execution_store.get_job_history(job_id=job_id)))
 
         if len(all_history) == 0:
             return APIResponse(status_code=204, message=f"Job history not found for job: {job_name}").to_response()
