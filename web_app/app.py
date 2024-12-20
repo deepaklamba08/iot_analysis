@@ -63,4 +63,4 @@ def create_app(arguments: list):
     def job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
 
-    return app
+    return app.run(host=config.get_property('host'), port=config.get_property('port'))

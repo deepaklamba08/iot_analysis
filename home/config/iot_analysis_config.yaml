@@ -1,5 +1,5 @@
 app:
-  app_config_file: path to iot_analysis.json
+  app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/iot_analysis.json
   execution_summary:
     type: file
-    execution_summary_dir: E:\work\iot_analysis\test\summary
+    execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/test/summary

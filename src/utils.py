@@ -75,7 +75,7 @@ def replace_placeholders(raw_data: str, parameters: dict) -> str:
 
 
 def read_config_file(config_file_path: str):
-    import yaml
+    from pyaml_env import parse_config
 
     if not os.path.isfile(config_file_path):
         raise Exception(f'not a file - {config_file_path}')
@@ -83,9 +83,5 @@ def read_config_file(config_file_path: str):
     if not os.path.exists(config_file_path):
         raise Exception(f'file not exists - {config_file_path}')
 
-    with open(config_file_path, 'r') as stream:
-        try:
-            yaml_config = yaml.safe_load(stream)
-            return yaml_config
-        except yaml.YAMLError as exc:
-            raise Exception('error occurred while reading config file', exc)
+    yaml_config = parse_config(config_file_path)
+    return yaml_config

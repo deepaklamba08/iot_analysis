@@ -130,6 +130,7 @@ run_app(){
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
   #SHELL_CMD="$PYTHON_HOME $PYTHON_WEB_APP_NAME $CLI_INPUT_STRING"
   SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --debug"
+  #SHELL_CMD="$PYTHON_HOME -m flask --app \"web_app.app.py:create_app($CLI_INPUT_STRING)\" run --debug"
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
