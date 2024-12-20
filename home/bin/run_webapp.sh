@@ -135,9 +135,10 @@ validate_parameters(){
 
 orchestrate(){
   if [[ "$ACTION" = "start" ]]; then
+      log_message "INFO" "starting app"
       run_app
   elif [[ "$ACTION" = "stop" ]]; then
-
+      log_message "INFO" "stopping app"
   else
     log_message "ERROR" "Action must be either start or stop"
   fi
