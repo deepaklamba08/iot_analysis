@@ -3,6 +3,7 @@ CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 LOG_FILE_PATH="../logs/webapp.log"
 source set_env.sh
 
+PID_FILE=$PATH_TO_ANALYSIS_APP/tmp/app.pid
 log_message() {
   LEVEL=$1
   MESSAGE=$2
@@ -153,7 +154,7 @@ run_app(){
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
-  eval $SHELL_CMD
+  nohup eval $SHELL_CMD & echo $! > "$PID_FILE"
   APP_RUN_STATUS=$?
   log_message "INFO" "App run status code - $APP_RUN_STATUS"
   if [ $APP_RUN_STATUS -eq 0 ]
