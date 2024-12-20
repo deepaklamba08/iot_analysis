@@ -5,7 +5,6 @@ import os
 import datetime
 import uuid
 from abc import ABC, abstractmethod
-import jaydebeapi
 
 
 class ApplicationStore:
@@ -353,6 +352,7 @@ class DbExecutionStoreBase(ExecutionStoreBase):
     def __init__(self, parameters: dict):
         self.logger = get_logger()
         self.parameters = parameters
+        import jaydebeapi
         self.conn = jaydebeapi.connect(jclassname=self.parameters['driver_class_name'],
                                        url=self.parameters['jdbc_url'],
                                        driver_args=self.parameters['driver_args'],
