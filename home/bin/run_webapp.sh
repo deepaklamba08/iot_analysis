@@ -3,7 +3,7 @@ CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 LOG_FILE_PATH="../logs/webapp.log"
 source set_env.sh
 
-PID_FILE=$PATH_TO_ANALYSIS_APP/tmp/app.pid
+PID_FILE=$PATH_TO_ANALYSIS_APP/home/tmp/app.pid
 
 log_message() {
   LEVEL=$1
@@ -172,11 +172,11 @@ run_app(){
 }
 
 
-if [ -d "$PATH_TO_ANALYSIS_APP/tmp" ]; then
+if [ -d "$PATH_TO_ANALYSIS_APP/home/tmp" ]; then
     log_message "INFO" "PID directory exists."
 else
     log_message "INFO" "Directory does not exist."
-    mkdir -p $PATH_TO_ANALYSIS_APP/tmp
+    mkdir -p $PATH_TO_ANALYSIS_APP/home/tmp
     touch $PID_FILE
 fi
 
