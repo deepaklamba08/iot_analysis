@@ -10,6 +10,7 @@ from web_app.service import WebAppService, WebAppConfig
 from src.utils import read_config_file
 import os
 
+
 def create_app(arguments: list):
     app_arguments = {arguments[i]: arguments[i + 1] for i in range(0, len(arguments), 2)}
     yaml_config = read_config_file(app_arguments['config_file'])
@@ -25,6 +26,10 @@ def create_app(arguments: list):
     @app.route('/')
     def index():
         return render_template('index.html')
+
+    @app.route('/status')
+    def status():
+        return service.status()
 
     @app.route('/jobs/all')
     def list_all_jobs():
