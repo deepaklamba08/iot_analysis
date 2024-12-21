@@ -1,8 +1,6 @@
 import csv
 import json
 
-import clickhouse_connect
-import pymongo
 
 from src.models import DataBag, SourceTemplate
 from src.models import RuntimeContext
@@ -38,6 +36,7 @@ class ClickHouseSource(SourceTemplate):
     def load(self, **kwargs) -> DataBag:
         self.logger.debug('executing : ClickHouseSource.load()')
         credentials = get_credentials(kwargs['credential_provider'])
+        import clickhouse_connect
         client = clickhouse_connect.get_client(
             host=credentials['host'], port=credentials['port'], username=credentials['user'],
             password=credentials['password'])
@@ -101,6 +100,7 @@ class MongoDbSource(SourceTemplate):
     def load(self, **kwargs) -> DataBag:
         self.logger.debug('executing : MongoDbSource.load()')
         credentials = get_credentials(kwargs['credential_provider'])
+        import pymongo
         mong_client = pymongo.MongoClient(host=credentials['host'],
                                           port=credentials['port'],
                                           username=credentials['user'],

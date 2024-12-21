@@ -125,7 +125,7 @@ class WebAppService:
     def jobs_history(self, job_name: str, is_current=False):
         self.logger.debug(f"executing : WebAppService.jobs_history(job_name : {job_name}, is_current : {is_current})")
         job_data = self.__fetch_job_names()
-        job_id = job_data[job_name]
+        job_id = job_data.get(job_name)
         if not job_id:
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
         all_history = list(map(lambda record: WebAppService.__map_job_history(record),
