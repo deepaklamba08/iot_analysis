@@ -3,6 +3,8 @@ CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 LOG_FILE_PATH="../logs/webapp.log"
 source set_env.sh
 
+HOST_NAME="localhost"
+
 PID_FILE=$PATH_TO_ANALYSIS_APP/home/tmp/app.pid
 
 log_message() {
@@ -151,7 +153,7 @@ run_app(){
   CLI_INPUT_STRING="['config_file','$CONFIG_FILE_PATH', 'submitter', '$SUBMITTER']" # ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
   #SHELL_CMD="$PYTHON_HOME $PYTHON_WEB_APP_NAME $CLI_INPUT_STRING"
-  SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --debug"
+  SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --host $HOST_NAME --debug"
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 

@@ -193,7 +193,7 @@
     "name": "Send telegram message",
     "description": "Job for telegram message",
     "status": true,
-    "application_id": "6",
+    "application_id": "3",
     "type": "job",
     "config": {
       "parameters": {
