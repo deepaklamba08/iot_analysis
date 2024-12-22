@@ -294,12 +294,11 @@ class Orchestrator:
                                                    'end_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT)
                                                    })
             self.logger.error(f'Execution failed with error - {process_result.message}')
-            raise Exception(f'Execution failed with error - {process_result.message}')
-
-        self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
-                                                                          'message': 'App execution completed',
-                                                                          'metrics': process_result.inference,
-                                                                          'end_time': datetime.datetime.now().strftime(
-                                                                              Constants.DATE_FORMAT)
-                                                                          })
+        else:
+            self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
+                                                                              'message': 'App execution completed',
+                                                                              'metrics': process_result.inference,
+                                                                              'end_time': datetime.datetime.now().strftime(
+                                                                                  Constants.DATE_FORMAT)
+                                                                              })
         return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)
