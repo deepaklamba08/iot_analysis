@@ -88,7 +88,7 @@ class TransformationProcessor(Processor):
                                          'add_field': 'src.transformations.AddConstantFieldTransformation',
                                          'rename_field': 'src.transformations.RenameFieldTransformation',
                                          'concat_field': 'src.transformations.ConcatFieldTransformation',
-                                         'record_to_json':'src.transformations.RecordToJsonTransformation'}
+                                         'record_to_json': 'src.transformations.RecordToJsonTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
@@ -256,14 +256,15 @@ class Orchestrator:
         return execution_id
 
     def run_scheduled_application(self, execution_id: str,
-                        application: Application,
-                        context: RuntimeContext) -> AppExecutionResult:
+                                  application: Application,
+                                  context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug(f'executing : Orchestrator.run_application()')
 
-        self.__run_job(execution_id=execution_id,
-                       application=application,
-                       runtime_context=context)
+        result = self.__run_job(execution_id=execution_id,
+                                application=application,
+                                runtime_context=context)
         self.logger.debug(f'exiting : Orchestrator.run_application()')
+        return result
 
     def run_application(self, context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug('executing : Orchestrator.orchestrate()')
@@ -285,7 +286,8 @@ class Orchestrator:
         exe_result = self.logger.debug('exiting : Orchestrator.orchestrate()')
         return exe_result
 
-    def __run_job(self, execution_id: str, application: Application, runtime_context: RuntimeContext):
+    def __run_job(self, execution_id: str, application: Application,
+                  runtime_context: RuntimeContext) -> AppExecutionResult:
         process_result = ApplicationProcessor(application=application, runtime_context=runtime_context).run()
         if not process_result.status:
             self.execution_store.update_summary(execution_id=execution_id,
