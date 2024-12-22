@@ -37,7 +37,7 @@ class JobExecutor:
                 runtime_context = self.create_runtime_context(scheduled_job.parameters)
                 application_store = ApplicationStore(runtime_context.config_file(), runtime_context.parameters)
                 application = application_store.lookup_application(scheduled_job.app_id)
-                self.logger.debug(f'loaded application - f{application.name}')
+                self.logger.debug(f'loaded application - {application.name}')
                 if not application:
                     self.logger.error(f'application not found by id - {scheduled_job.app_id}')
                     raise Exception(f'application not found by id - {scheduled_job.app_id}')

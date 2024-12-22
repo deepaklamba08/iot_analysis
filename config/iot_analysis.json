@@ -180,7 +180,7 @@
     "name": "app-2-job",
     "description": "application 2 job",
     "status": true,
-    "application_id": "1",
+    "application_id": "2",
     "type": "job",
     "config": {
       "parameters": {
@@ -189,7 +189,7 @@
     }
   },
   {
-    "id": "6",
+    "id": "3",
     "name": "Send telegram message",
     "description": "Job for telegram message",
     "status": true,
