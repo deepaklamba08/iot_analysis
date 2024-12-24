@@ -1,0 +1,7 @@
+curl -H 'Content-Type: application/json' \
+-d '{"jobName":"app-2-job","jobParameters":"{\"file_path\": \"\"}"}' \
+-X POST \
+http://localhost:5000/jobs/run/
+
+
+curl -GET http://localhost:5000/jobs/history/app-2-job
