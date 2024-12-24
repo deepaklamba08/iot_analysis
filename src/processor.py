@@ -223,9 +223,10 @@ class ApplicationProcessor(Processor):
 
 class AppExecutionResult:
 
-    def __init__(self, app_id: str, execution_id: str):
+    def __init__(self, app_id: str, execution_id: str, status: bool):
         self.app_id = app_id
         self.execution_id = execution_id
+        self.status = status
 
 
 class Orchestrator:
@@ -297,10 +298,11 @@ class Orchestrator:
                                                    })
             self.logger.error(f'Execution failed with error - {process_result.message}')
         else:
-            self.execution_store.update_summary(execution_id=execution_id, **{'status': 'Completed',
-                                                                              'message': 'App execution completed',
-                                                                              'metrics': process_result.inference,
-                                                                              'end_time': datetime.datetime.now().strftime(
-                                                                                  Constants.DATE_FORMAT)
-                                                                              })
-        return AppExecutionResult(app_id=application.object_id, execution_id=execution_id)
+            self.execution_store.update_summary(execution_id=execution_id,
+                                                **{'status': 'Completed',
+                                                   'message': 'App execution completed',
+                                                   'metrics': process_result.inference,
+                                                   'end_time': datetime.datetime.now().strftime(
+                                                       Constants.DATE_FORMAT)
+                                                   })
+        return AppExecutionResult(app_id=application.object_id, execution_id=execution_id, status=process_result.status)

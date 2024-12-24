@@ -1,5 +1,5 @@
 curl -H 'Content-Type: application/json' \
--d '{"jobName":"app-2-job","jobParameters":"{\"file_path\": \"\"}"}' \
+-d '{"jobName":"app-2-job","jobParameters":"{\"file_path\": \"/home/pi/dev/iot_analysis/home/example/device_data.json\"}"}' \
 -X POST \
 http://localhost:5000/jobs/run/
 

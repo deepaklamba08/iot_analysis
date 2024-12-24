@@ -40,14 +40,14 @@ class JobExecutor:
                 self.logger.debug(f'loaded application - {application.name}')
                 if not application:
                     self.logger.error(f'application not found by id - {scheduled_job.app_id}')
-                    raise Exception(f'application not found by id - {scheduled_job.app_id}')
 
-                Orchestrator(application_store=application_store,
-                             execution_store=self.execution_store,
-                             job_store=self.job_store).run_scheduled_application(
+                result = Orchestrator(application_store=application_store,
+                                      execution_store=self.execution_store,
+                                      job_store=self.job_store).run_scheduled_application(
                     execution_id=scheduled_job.execution_id,
                     application=application,
                     context=runtime_context)
+                self.logger.debug(f'App execution id - {result.execution_id}, status - {result.status}')
         else:
             self.logger.debug(f'no jobs to run')
 
