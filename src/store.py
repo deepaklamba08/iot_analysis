@@ -249,12 +249,8 @@ class ExecutionStore(ExecutionStoreBase):
         if not os.path.exists(base_dir):
             os.mkdir(base_dir)
 
-        self.__get_summary_file_name(base_dir)
         if not os.path.exists(self.summary_file):
             self.__create_empty_summary_file()
-
-    def __get_summary_file_name(self, base_dir: str):
-        summary_files = list(filter(lambda file_path: file_path.startswith("summary_"), os.listdir(base_dir)))
 
     def __create_empty_summary_file(self):
         with open(self.summary_file, 'w') as stream:
