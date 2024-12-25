@@ -20,7 +20,7 @@ log_message() {
 
 print_usage(){
   log_message "INFO" "Usage"
-  echo "+-------------------------Analysis App Parameters----------------------+"
+  echo "+-------------------------Analysis Web App Parameters----------------------+"
   echo "| -a or -action           : Action                                     |"
   echo "| -cf or -config          : Config file                                |"
   echo "| -su or -submitter       : Application runner                         |"
