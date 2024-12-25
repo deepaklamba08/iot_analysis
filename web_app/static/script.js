@@ -45,7 +45,7 @@ RUN_METRICS_TABLE_ID,RUN_METRICS_TABLE_BODY_ID,RUN_METRICS_TABLE_PARA_ID]
 
 
 function getJobRunUrl(jobName){
-  return BASE_URL+"/jobs/run/"; //+jobName
+  return BASE_URL+"/jobs/run/";
 }
 
 function getJobCurrentStatusUrl(jobName){
