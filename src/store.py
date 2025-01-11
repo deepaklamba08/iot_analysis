@@ -533,6 +533,8 @@ class ExecutionStoreProvider:
         execution_summary_config = parameters['execution_summary']
         if execution_summary_config['type'] == 'file':
             return ExecutionStore({'base_dir': execution_summary_config['execution_summary_dir']})
+        elif execution_summary_config['type'] == 'file-v2':
+            return ExecutionStoreV2({'base_dir': execution_summary_config['execution_summary_dir']})
         elif execution_summary_config['type'] == 'db':
             return DbExecutionStoreBase(execution_summary_config)
         else:
