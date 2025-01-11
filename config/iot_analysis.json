@@ -1,15 +1,15 @@
 [
   {
     "id": "1",
-    "name": "app-1",
-    "description": "application 1",
+    "name": "Sample Application",
+    "description": "Sample Application",
     "status": true,
     "config": {},
     "sources": [
       {
         "id": "1",
-        "name": "source-1",
-        "description": "source 1",
+        "name": "Origin Source",
+        "description": "Origin Source",
         "status": true,
         "type": "click_house",
         "config": {
@@ -27,8 +27,8 @@
       },
       {
         "id": "2",
-        "name": "source-2",
-        "description": "source 2",
+        "name": "Json Source",
+        "description": "Json Source",
         "status": true,
         "type": "json",
         "config": {
@@ -39,8 +39,8 @@
     "transformations": [
       {
         "id": "1",
-        "name": "process-1",
-        "description": "process 1",
+        "name": "Dummy Transformation",
+        "description": "Dummy Transformation",
         "status": true,
         "type": "dummy_transformation",
         "config": {
@@ -56,8 +56,8 @@
       },
       {
         "id": "2",
-        "name": "process-2",
-        "description": "process 2",
+        "name": "Second Dummy Transformation",
+        "description": "Second Dummy Transformation",
         "status": true,
         "type": "dummy_transformation",
         "config": {
@@ -66,6 +66,185 @@
             "b",
             "c"
           ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "1",
+        "name": "Log Results",
+        "description": "Log Results",
+        "status": true,
+        "type": "log_data",
+        "config": {}
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Telegram Alert",
+    "description": "send a telegram message using source data",
+    "status": true,
+    "config": {},
+    "sources": [
+      {
+        "id": "1",
+        "name": "Read Source Messages",
+        "description": "source for telegram message",
+        "status": true,
+        "type": "json",
+        "config": {
+          "file_path": "${file_path}"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "1",
+        "name": "Send Telegram Message",
+        "description": "send a telegram message",
+        "status": true,
+        "type": "telegram_message",
+        "config": {
+          "message_source_type": "source",
+          "message_source_name": "telegram-source",
+          "credential_provider": {
+            "type": "environment_variable",
+            "variables": {
+              "api_token": "TELEGRAM_API_TOKEN",
+              "chat_id": "TELEGRAM_CHAT_ID"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "name": "Custom Telegram Message",
+    "description": "Send a telegram message",
+    "status": true,
+    "config": {},
+    "sources": [
+      {
+        "id": "1",
+        "name": "Read Telegram Message",
+        "description": "Source for telegram message",
+        "status": true,
+        "type": "dev_source",
+        "config": {
+          "data": [
+            {
+              "message": "${message_text}"
+            }
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "1",
+        "name": "Send Telegram Message",
+        "description": "Send a telegram message",
+        "status": true,
+        "type": "telegram_message",
+        "config": {
+          "message_source_type": "source",
+          "message_source_name": "telegram-source",
+          "credential_provider": {
+            "type": "environment_variable",
+            "variables": {
+              "api_token": "TELEGRAM_API_TOKEN",
+              "chat_id": "TELEGRAM_CHAT_ID"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "name": "Data Transform",
+    "description": "Data Transform",
+    "status": true,
+    "config": {},
+    "sources": [
+      {
+        "id": "1",
+        "name": "Read Json",
+        "description": "Read Json Data",
+        "status": true,
+        "type": "json",
+        "config": {
+          "file_path": "${input_data_file_path}"
+        }
+      }
+    ],
+    "transformations": [
+      {
+        "id": "1",
+        "name": "Select Fields",
+        "description": "Select Fields",
+        "status": true,
+        "type": "field_selector",
+        "config": {
+          "source_type": "source",
+          "source_name": "Read Json",
+          "fields": [
+            "execution_id",
+            "app_id",
+            "job_id",
+            "status",
+            "run_by",
+            "start_time",
+            "end_time",
+            "run_type"
+          ]
+        }
+      },
+      {
+        "id": "2",
+        "name": "Add Run Date",
+        "description": "Add Run Date",
+        "status": true,
+        "type": "add_field",
+        "config": {
+          "source_type": "transformation",
+          "source_name": "Select Fields",
+          "fields": {
+            "run_date": "${run_date}"
+          }
+        }
+      },
+      {
+        "id": "3",
+        "name": "Rename Fields",
+        "description": "Rename Fields",
+        "status": true,
+        "type": "rename_field",
+        "config": {
+          "source_type": "transformation",
+          "source_name": "Add Run Date",
+          "fields": {
+            "run_by": "trigger_by"
+          }
+        }
+      },
+      {
+        "id": "4",
+        "name": "Concat Fields",
+        "description": "Concat Fields",
+        "status": true,
+        "type": "concat_field",
+        "config": {
+          "source_type": "transformation",
+          "source_name": "Rename Fields",
+          "fields": [
+            "execution_id",
+            "app_id",
+            "job_id"
+          ],
+          "output_field": "key"
         }
       }
     ],
@@ -81,91 +260,9 @@
     ]
   },
   {
-    "id": "2",
-    "name": "telegram-message-test",
-    "description": "send a telegram message using source data",
-    "status": true,
-    "config": {},
-    "sources": [
-      {
-        "id": "1",
-        "name": "telegram-source",
-        "description": "source for telegram message",
-        "status": true,
-        "type": "json",
-        "config": {
-          "file_path": "${file_path}"
-        }
-      }
-    ],
-    "actions": [
-      {
-        "id": "1",
-        "name": "action-1",
-        "description": "send a telegram message",
-        "status": true,
-        "type": "telegram_message",
-        "config": {
-          "message_source_type": "source",
-          "message_source_name": "telegram-source",
-          "credential_provider": {
-            "type": "environment_variable",
-            "variables": {
-              "api_token": "TELEGRAM_API_TOKEN",
-              "chat_id": "TELEGRAM_CHAT_ID"
-            }
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "3",
-    "name": "custom-telegram-message",
-    "description": "send a telegram message",
-    "status": true,
-    "config": {},
-    "sources": [
-      {
-        "id": "1",
-        "name": "telegram-source",
-        "description": "source for telegram message",
-        "status": true,
-        "type": "dev_source",
-        "config": {
-          "data": [
-            {
-              "message": "${message_text}"
-            }
-          ]
-        }
-      }
-    ],
-    "actions": [
-      {
-        "id": "1",
-        "name": "action-1",
-        "description": "send a telegram message",
-        "status": true,
-        "type": "telegram_message",
-        "config": {
-          "message_source_type": "source",
-          "message_source_name": "telegram-source",
-          "credential_provider": {
-            "type": "environment_variable",
-            "variables": {
-              "api_token": "TELEGRAM_API_TOKEN",
-              "chat_id": "TELEGRAM_CHAT_ID"
-            }
-          }
-        }
-      }
-    ]
-  },
-  {
     "id": "1",
-    "name": "app-1-job",
-    "description": "application 1 job",
+    "name": "Sample Application Job",
+    "description": "Sample Application",
     "status": true,
     "application_id": "1",
     "type": "job",
@@ -177,8 +274,8 @@
   },
   {
     "id": "2",
-    "name": "app-2-job",
-    "description": "application 2 job",
+    "name": "Telegram Alert Job",
+    "description": "Telegram Alert",
     "status": true,
     "application_id": "2",
     "type": "job",
@@ -190,14 +287,28 @@
   },
   {
     "id": "3",
-    "name": "Send telegram message",
-    "description": "Job for telegram message",
+    "name": "Send telegram message Job",
+    "description": "Custom Telegram Message",
     "status": true,
     "application_id": "3",
     "type": "job",
     "config": {
       "parameters": {
         "message_text": "<message text>"
+      }
+    }
+  },
+  {
+    "id": "4",
+    "name": "Data Transform Job",
+    "description": "Data Transform Job",
+    "status": true,
+    "application_id": "4",
+    "type": "job",
+    "config": {
+      "parameters": {
+        "input_data_file_path": "",
+        "run_date": ""
       }
     }
   }

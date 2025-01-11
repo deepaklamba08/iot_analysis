@@ -99,7 +99,7 @@ class AddConstantFieldTransformation(BaseRecordTransformation):
 
     def apply(self, item: dict, **kwargs) -> dict:
         fields_to_add = kwargs['fields']
-        for field in fields_to_add:
+        for field in fields_to_add.keys():
            item[field] = fields_to_add[field]
         return item
 
