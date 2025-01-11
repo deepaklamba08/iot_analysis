@@ -327,6 +327,98 @@ class ExecutionStore(ExecutionStoreBase):
         return list(filter(lambda record: record.status in statuses, records))
 
 
+class ExecutionStoreV2(ExecutionStoreBase):
+    __SUMMARY_FILE_PREFIX = "summary_"
+
+    def __init__(self, parameters: dict):
+        self.parameters = parameters
+        self.base_dir = parameters['base_dir']
+        if not os.path.exists(self.base_dir):
+            os.mkdir(self.base_dir)
+
+    @staticmethod
+    def __create_empty_summary_file(summary_file: str):
+        with open(summary_file, 'w') as stream:
+            stream.write('{}')
+
+    @staticmethod
+    def __fetch_all_records(summary_file: str):
+        with open(summary_file, 'r') as stream:
+            data = json.load(stream)
+            return ExecutionDetail.from_dict(data)
+
+    @staticmethod
+    def __check_file(summary_file: str):
+        if not os.path.exists(summary_file):
+            ExecutionStoreV2.__create_empty_summary_file(summary_file)
+
+    def __get_file_path(self, execution_id: str):
+        return os.path.join(self.base_dir, f'{ExecutionStoreV2.__SUMMARY_FILE_PREFIX}{execution_id}.json')
+
+    @staticmethod
+    def __save_records(summary_file, execution_detail: ExecutionDetail):
+        with open(summary_file, 'w') as stream:
+            stream.write(json.dumps(execution_detail.get_as_dict(), indent=0))
+
+    @staticmethod
+    def __save_summary(summary_file, execution_detail: ExecutionDetail):
+        ExecutionStoreV2.__save_records(summary_file=summary_file, execution_detail=execution_detail)
+
+    @staticmethod
+    def __update_summary(summary_file, execution_detail: ExecutionDetail):
+        ExecutionStoreV2.__save_summary(summary_file=summary_file, execution_detail=execution_detail)
+
+    def create_summary(self, job_id: str, app_id: str, status: str, message: str, run_by: str, run_type: str,
+                       parameters: dict = None) -> str:
+        execution_id = str(uuid.uuid1())
+        summary_file = self.__get_file_path(execution_id)
+        ExecutionStoreV2.__check_file(summary_file)
+        execution_detail = ExecutionDetail(execution_id=execution_id, job_id=job_id, app_id=app_id, status=status,
+                                           message=message,
+                                           start_time=datetime.datetime.now().strftime(Constants.DATE_FORMAT),
+                                           parameters=parameters, run_by=run_by)
+
+        ExecutionStoreV2.__save_summary(summary_file=summary_file, execution_detail=execution_detail)
+        return execution_id
+
+    def __fetch_summary(self, execution_id: str) -> ExecutionDetail:
+        summary_file = self.__get_file_path(execution_id)
+        record = ExecutionStoreV2.__fetch_all_records(summary_file)
+        return record
+
+    def update_summary(self, execution_id: str, **kwargs):
+        existing_summary = self.__fetch_summary(execution_id=execution_id)
+        if not existing_summary:
+            raise Exception(f'execution summary not found for id - {execution_id}')
+        existing_summary.update_attributes(**kwargs)
+        existing_summary.update_attributes(
+            **{
+                'execution_id': execution_id,
+                'update_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT),
+            })
+        summary_file = self.__get_file_path(execution_id)
+        ExecutionStoreV2.__update_summary(summary_file=summary_file, execution_detail=existing_summary)
+
+    def __get_all_files(self):
+        files_with_prefix = [f for f in os.listdir(self.base_dir) if
+                             f.startswith(ExecutionStoreV2.__SUMMARY_FILE_PREFIX)
+                             and os.path.isfile(os.path.join(self.base_dir, f))]
+        return list(map(lambda file_path: os.path.join(self.base_dir, file_path), files_with_prefix))
+
+    def __fetch_all(self, filter_fun):
+        files = self.__get_all_files()
+        elements = list(map(lambda file: ExecutionStoreV2.__fetch_all_records(summary_file=file), files))
+        return list(filter(lambda element: filter_fun(element), elements))
+
+    def get_job_history_by_status(self, statuses: list) -> list:
+        elements = self.__fetch_all(filter_fun=lambda record: record.status in statuses)
+        return elements
+
+    def get_job_history(self, job_id: str) -> list:
+        elements = self.__fetch_all(filter_fun=lambda record: record.job_id == job_id)
+        return elements
+
+
 class DbExecutionStoreBase(ExecutionStoreBase):
     """
     create table execution_result(
