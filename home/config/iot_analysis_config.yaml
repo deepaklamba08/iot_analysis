@@ -1,5 +1,5 @@
 app:
   app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/iot_analysis.json
   execution_summary:
-    type: file
+    type: file-v2
     execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/home/data/exe_history
