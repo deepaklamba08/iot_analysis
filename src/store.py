@@ -241,6 +241,7 @@ class ExecutionStoreBase(ABC):
 
 class ExecutionStore(ExecutionStoreBase):
     __SUMMARY_FILE_NAME = "summary.json"
+    __DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     def __init__(self, parameters: dict):
         self.parameters = parameters
@@ -320,15 +321,23 @@ class ExecutionStore(ExecutionStoreBase):
     def get_job_history(self, job_id: str) -> list:
         records = self.__fetch_all_records()
         matched_records = list(filter(lambda record: record.job_id == job_id, records))
+        matched_records = sorted(matched_records,
+                                 key=lambda element: datetime.datetime.strptime(element.start_time,
+                                                                                ExecutionDetail.__DATE_FORMAT))
         return matched_records
 
     def get_job_history_by_status(self, statuses: list) -> list:
         records = self.__fetch_all_records()
-        return list(filter(lambda record: record.status in statuses, records))
+        matched_records = list(filter(lambda record: record.status in statuses, records))
+        matched_records = sorted(matched_records,
+                                 key=lambda element: datetime.datetime.strptime(element.start_time,
+                                                                                ExecutionDetail.__DATE_FORMAT))
+        return matched_records
 
 
 class ExecutionStoreV2(ExecutionStoreBase):
     __SUMMARY_FILE_PREFIX = "summary_"
+    __DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     def __init__(self, parameters: dict):
         self.parameters = parameters
@@ -412,10 +421,16 @@ class ExecutionStoreV2(ExecutionStoreBase):
 
     def get_job_history_by_status(self, statuses: list) -> list:
         elements = self.__fetch_all(filter_fun=lambda record: record.status in statuses)
+        elements = sorted(elements,
+                          key=lambda element: datetime.datetime.strptime(element.start_time,
+                                                                         ExecutionStoreV2.__DATE_FORMAT))
         return elements
 
     def get_job_history(self, job_id: str) -> list:
         elements = self.__fetch_all(filter_fun=lambda record: record.job_id == job_id)
+        elements = sorted(elements,
+                          key=lambda element: datetime.datetime.strptime(element.start_time,
+                                                                         ExecutionStoreV2.__DATE_FORMAT))
         return elements
 
 
