@@ -27,6 +27,16 @@ def create_app(arguments: list):
     def index():
         return render_template('index.html')
 
+    @app.route('/job_details')
+    def job_details():
+        name = request.args.get('name')
+        return render_template('job_details.html',name=name)
+
+    @app.route('/job_history')
+    def job_history():
+        name = request.args.get('name')
+        return render_template('job_history.html',name=name)
+
     @app.route('/status')
     def status():
         return service.status()
@@ -51,15 +61,15 @@ def create_app(arguments: list):
         return service.application_details(job_name=job_name)
 
     @app.route('/jobs/<job_name>/details', methods=['GET'])
-    def job_details(job_name: str):
+    def get_job_details(job_name: str):
         return service.job_details(job_name=job_name)
 
     @app.route('/jobs/history/<job_name>', methods=['GET'])
-    def jobs_history(job_name: str):
+    def get_jobs_history(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=False)
 
     @app.route('/jobs/status/<job_name>', methods=['GET'])
-    def job_status(job_name: str):
+    def get_job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
 
     return app

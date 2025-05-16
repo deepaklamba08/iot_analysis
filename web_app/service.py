@@ -157,8 +157,8 @@ class WebAppService:
                 "run_by": run_by,
                 "status": job_history.status,
                 "start_time": job_history.start_time,
-                "end_time": job_history.end_time,
-                "run_type": job_history.run_type,
+                "end_time": job_history.end_time if job_history.end_time else '-',
+                "run_type": job_history.run_type if job_history.run_type else '-',
                 "message": message,
                 "metrics": job_history.metrics
                 }
@@ -182,7 +182,7 @@ class WebAppService:
                 "created_by": (job.created_by, "-")[job.created_by is None],
                 "updated_by": (job.updated_by, "-")[job.updated_by is None],
                 "job_parameters": job.job_parameters(),
-                "is_scheduled": job.is_scheduled()
+                "is_scheduled": "Yes" if job.is_scheduled() else "No"
                 }
 
     @staticmethod
@@ -195,7 +195,8 @@ class WebAppService:
                 "create_date": (source.create_date, "-")[source.create_date is None],
                 "update_date": (source.update_date, "-")[source.update_date is None],
                 "created_by": (source.created_by, "-")[source.created_by is None],
-                "updated_by": (source.updated_by, "-")[source.updated_by is None]
+                "updated_by": (source.updated_by, "-")[source.updated_by is None],
+                "type": source.source_type
                 }
 
     @staticmethod
@@ -208,7 +209,8 @@ class WebAppService:
                 "create_date": (transformation.create_date, "-")[transformation.create_date is None],
                 "update_date": (transformation.update_date, "-")[transformation.update_date is None],
                 "created_by": (transformation.created_by, "-")[transformation.created_by is None],
-                "updated_by": (transformation.updated_by, "-")[transformation.updated_by is None]
+                "updated_by": (transformation.updated_by, "-")[transformation.updated_by is None],
+                "type":transformation.transformation_type
                 }
 
     @staticmethod
@@ -221,7 +223,8 @@ class WebAppService:
                 "create_date": (action.create_date, "-")[action.create_date is None],
                 "update_date": (action.update_date, "-")[action.update_date is None],
                 "created_by": (action.created_by, "-")[action.created_by is None],
-                "updated_by": (action.updated_by, "-")[action.updated_by is None]
+                "updated_by": (action.updated_by, "-")[action.updated_by is None],
+                "type": action.action_type
                 }
 
     @staticmethod
@@ -245,5 +248,6 @@ class WebAppService:
                 "updated_by": (application.updated_by, "-")[application.updated_by is None],
                 "sources": sources,
                 "transformations": transformations,
-                "actions": actions
+                "actions": actions,
+                "config": application.config
                 }

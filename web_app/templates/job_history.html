@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="{{url_for('static', filename='app_script.js')}}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            padding: 30px;
+        }
+
+
+        .jobExeDetailsLabel {
+            color: white;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .form-group span {
+            background-color: #e9ecef;
+        }
+
+        .detail-span {
+            display: inline-block;
+            width: 100%;
+            padding: 6px 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            min-height: 34px;
+        }
+
+        #jobExeDetailsTable th,
+        #jobExeDetailsTable td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #jobExeDetailsTable {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #jobExeDetailsTable th {
+            background-color: #337ab7;
+            color: white;
+        }
+
+        .centered-panel {
+            margin: 0 auto;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .bottom-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+
+    </style>
+</head>
+
+<body onload="initHistoryPage()">
+
+<div class="panel panel-primary centered-panel">
+    <div class="panel-heading">
+        <label id="jobExeDetailsLabel" class="jobExeDetailsLabel">Job Execution History</label>
+    </div>
+
+    <div class="panel-body" id="jobExeDetailsSection">
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Job Name:</strong></div>
+            <div class="col-sm-9"><span id="jobNameLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Application Id:</strong></div>
+            <div class="col-sm-9"><span id="appIdLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Run By:</strong></div>
+            <div class="col-sm-9"><span id="jobRunByLabel" class="detail-span"></span></div>
+        </div>
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Run Type:</strong></div>
+            <div class="col-sm-9"><span id="jobRunTypeLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Status:</strong></div>
+            <div class="col-sm-9"><span id="jobStatusLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Start Date:</strong></div>
+            <div class="col-sm-9"><span id="jobStartDateLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>End Date:</strong></div>
+            <div class="col-sm-9"><span id="jobEndDateLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Message:</strong></div>
+            <div class="col-sm-9"><span id="jobMessageLabel" class="detail-span"></span></div>
+        </div>
+
+        <hr>
+        <h4>Job History</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="jobExeDetailsTable">
+                <thead>
+                <tr>
+                    <th>Run By</th>
+                    <th>Run Type</th>
+                    <th>Status</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody id="jobExeDetailsTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Button -->
+        <div class="bottom-button">
+            <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Message Modal -->
+<div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title" id="messageModalLabel">Info</h4>
+      </div>
+
+      <div class="modal-body">
+        <p id="messageModalBody">Your message goes here.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

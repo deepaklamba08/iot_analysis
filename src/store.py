@@ -323,7 +323,7 @@ class ExecutionStore(ExecutionStoreBase):
         matched_records = list(filter(lambda record: record.job_id == job_id, records))
         matched_records = sorted(matched_records,
                                  key=lambda element: datetime.datetime.strptime(element.start_time,
-                                                                                ExecutionDetail.__DATE_FORMAT))
+                                                                                ExecutionStore.__DATE_FORMAT))
         return matched_records
 
     def get_job_history_by_status(self, statuses: list) -> list:
@@ -331,7 +331,7 @@ class ExecutionStore(ExecutionStoreBase):
         matched_records = list(filter(lambda record: record.status in statuses, records))
         matched_records = sorted(matched_records,
                                  key=lambda element: datetime.datetime.strptime(element.start_time,
-                                                                                ExecutionDetail.__DATE_FORMAT))
+                                                                                ExecutionStore.__DATE_FORMAT))
         return matched_records
 
 
