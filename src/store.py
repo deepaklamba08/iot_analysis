@@ -137,6 +137,7 @@ class JobStore:
             name=config['name'],
             status=config['status'],
             application_id=config['application_id'],
+            application_name=config.get('application_name','-'),
             create_date=config.get('create_date'),
             update_date=config.get('update_date'),
             created_by=config.get('created_by'),

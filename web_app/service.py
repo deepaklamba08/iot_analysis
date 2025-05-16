@@ -154,6 +154,7 @@ class WebAppService:
 
         return {"job_id": job_history.job_id,
                 "app_id": job_history.app_id,
+                "app_name": job_history.app_id,
                 "run_by": run_by,
                 "status": job_history.status,
                 "start_time": job_history.start_time,
@@ -177,6 +178,7 @@ class WebAppService:
                 "status": WebAppService.__map_status(job.status),
                 "description": job.description,
                 "application_id": job.application_id,
+                "application_name": job.application_name,
                 "create_date": (job.create_date, "-")[job.create_date is None],
                 "update_date": (job.update_date, "-")[job.update_date is None],
                 "created_by": (job.created_by, "-")[job.created_by is None],

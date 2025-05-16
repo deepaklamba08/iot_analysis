@@ -140,6 +140,7 @@ function setJobDetails(responseData){
     var jobDetails = responseData.data;
     document.getElementById('jobNameLabel').textContent = jobDetails.name;
     document.getElementById('appIdLabel').textContent = jobDetails.application_id;
+    document.getElementById('appNameLabel').textContent = jobDetails.application_name;
     document.getElementById('jobDescriptionLabel').textContent = jobDetails.description;
     document.getElementById('jobStatusLabel').textContent = jobDetails.status;
     document.getElementById('jobCreateDateLabel').textContent = jobDetails.create_date;
@@ -231,6 +232,7 @@ function setJobCurrentStatus(responseData){
 
     document.getElementById('jobNameLabel').textContent = jobName;
     document.getElementById('appIdLabel').textContent = jobStatus.app_id;
+    document.getElementById('appNameLabel').textContent = jobStatus.app_name;
     document.getElementById('jobRunByLabel').textContent = jobStatus.run_by;
     document.getElementById('jobRunTypeLabel').textContent = jobStatus.run_type;
     document.getElementById('jobStatusLabel').textContent = jobStatus.status;
