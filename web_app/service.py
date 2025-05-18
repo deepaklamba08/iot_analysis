@@ -152,17 +152,19 @@ class WebAppService:
         else:
             message = job_history.message
 
-        return {"job_id": job_history.job_id,
-                "app_id": job_history.app_id,
-                "app_name": job_history.app_id,
-                "run_by": run_by,
-                "status": job_history.status,
-                "start_time": job_history.start_time,
-                "end_time": job_history.end_time if job_history.end_time else '-',
-                "run_type": job_history.run_type if job_history.run_type else '-',
-                "message": message,
-                "metrics": job_history.metrics
-                }
+        return {
+            "execution_id": job_history.execution_id,
+            "job_id": job_history.job_id,
+            "app_id": job_history.app_id,
+            "app_name": job_history.app_id,
+            "run_by": run_by,
+            "status": job_history.status,
+            "start_time": job_history.start_time,
+            "end_time": job_history.end_time if job_history.end_time else '-',
+            "run_type": job_history.run_type if job_history.run_type else '-',
+            "message": message,
+            "metrics": job_history.metrics
+        }
 
     @staticmethod
     def __map_status(status):
@@ -212,7 +214,7 @@ class WebAppService:
                 "update_date": (transformation.update_date, "-")[transformation.update_date is None],
                 "created_by": (transformation.created_by, "-")[transformation.created_by is None],
                 "updated_by": (transformation.updated_by, "-")[transformation.updated_by is None],
-                "type":transformation.transformation_type
+                "type": transformation.transformation_type
                 }
 
     @staticmethod

@@ -9,7 +9,23 @@ function getJobDetailsUrl(jobName){
   return BASE_URL+"/jobs/"+jobName+'/details'
 }
 
-function makeAPICall(endPoint, methodType, requestBody, consumer) {
+function getJobHistoryUrl(jobName){
+  return BASE_URL+"/jobs/history/"+jobName
+}
+
+function getJobRunUrl(){
+  return BASE_URL+"/jobs/run/";
+}
+
+function getJobCurrentStatusUrl(jobName){
+  return BASE_URL+"/jobs/status/"+jobName
+}
+
+function failureCallback(error){
+  console.error('API Call Error:', error);
+}
+
+function makeAPICall(endPoint, methodType, requestBody, successCallback, failureCallback) {
     var options = {
         method: methodType,
         headers: {
@@ -29,14 +45,14 @@ function makeAPICall(endPoint, methodType, requestBody, consumer) {
             return response.json();
         })
         .then(data => {
-            if (typeof consumer === 'function') {
-                consumer(data);
+            if (typeof successCallback === 'function') {
+                successCallback(data);
             } else {
-                console.warn("Consumer is not a function");
+                console.warn("successCallback is not a function");
             }
         })
         .catch(error => {
-            console.error('API Call Error:', error);
+            failureCallback(error);
         });
 }
 
@@ -54,7 +70,7 @@ function populateJobNames(){
         } else {
             console.error("Invalid response format: 'data' is not an array.");
         }
-    })
+    },failureCallback)
 }
 
 function clearTableContents(tableBody){
@@ -119,7 +135,7 @@ function initIndexPage(){
 function applicationDetails(){
     var jobName = document.getElementById('jobNames').value;
     var endPoint = getAppDetailsUrl(jobName)
-    makeAPICall(endPoint,'GET',null,setApplicationDetails)
+    makeAPICall(endPoint,'GET',null,setApplicationDetails,failureCallback)
 }
 
 function openJobDetailsPage(){
@@ -164,11 +180,11 @@ function setJobDetails(responseData){
 function initJobDetailsPage(){
     var jobName=getQueryParam('name');
     if (name === null) {
-        console.log("Query parameter 'name' is not present.");
+        showMessageModal("Query parameter 'name' is not present.");
         return;
     }
     var endPoint = getJobDetailsUrl(jobName)
-    makeAPICall(endPoint,'GET',null,setJobDetails)
+    makeAPICall(endPoint,'GET',null,setJobDetails,failureCallback)
 }
 
 
@@ -194,18 +210,11 @@ function readTableParameters() {
     return parameters;
 }
 
-function getJobRunUrl(){
-  return BASE_URL+"/jobs/run/";
-}
-
 
 function runJob(){
-    var jobName = document.getElementById('jobNameLabel').textContent.trim();;
-        console.log("jobName - "+jobName)
-
+    var jobName = document.getElementById('jobNameLabel').textContent.trim();
     var jobParameters = readTableParameters();
-
-    var url=getJobRunUrl()
+    var url = getJobRunUrl()
     var requestData={
                     jobName: jobName,
                     jobParameters:JSON.stringify(jobParameters)
@@ -214,7 +223,7 @@ function runJob(){
         $('#runJobModal').modal('hide');
         document.getElementById("messageModalBody").textContent = `Job '${jobName}' has been started successfully.`;
         $('#messageModal').modal('show');
-    })
+    },failureCallback)
 }
 
 function showMessageModal(message) {
@@ -227,12 +236,9 @@ function openJobHistoryPage(){
     window.open(`/job_history?name=${encodeURIComponent(jobName)}`, "_blank");
 }
 
-function getJobCurrentStatusUrl(jobName){
-  return BASE_URL+"/jobs/status/"+jobName
-}
 
 function setJobCurrentStatus(responseData){
-    if (responseData.status !== 200) {
+    if (responseData.status_code !== 200) {
         showMessageModal('No history available for this job. Please run the job to see the history.');
         return;
     }
@@ -251,14 +257,11 @@ function setJobCurrentStatus(responseData){
 }
 
 function setJobHistory(responseData){
-    if (responseData.status !== 200) {
+    if (responseData.status_code !== 200) {
         showMessageModal('No history available for this job. Please run the job to see the history.');
         return;
     }
     var jobHistory = responseData.data;
-    console.log(JSON.stringify(responseData, null, 2))
-    console.log(JSON.stringify(jobHistory, null, 2))
-
     var jobExeDetailsTable = document.getElementById('jobExeDetailsTable')
     clearTableContents(jobExeDetailsTable);
 
@@ -268,30 +271,23 @@ function setJobHistory(responseData){
 
 }
 
-function getJobHistoryUrl(jobName){
-  return BASE_URL+"/jobs/history/"+jobName
-}
 
 function populateJobCurrentStatus(jobName){
     var statusEndPoint = getJobCurrentStatusUrl(jobName);
-    makeAPICall(statusEndPoint,'GET',null,setJobCurrentStatus);
+    makeAPICall(statusEndPoint,'GET',null,setJobCurrentStatus,failureCallback);
 }
 
 function populateJobHistory(jobName){
     var historyEndPoint=getJobHistoryUrl(jobName);
-    makeAPICall(historyEndPoint,'GET',null,setJobHistory);
+    makeAPICall(historyEndPoint,'GET',null,setJobHistory,failureCallback);
 }
 
 function initHistoryPage(){
     var jobName = getQueryParam('name');
     if (name === null) {
-        console.log("Query parameter 'name' is not present.");
+        showMessageModal("Query parameter 'name' is not present.");
         return;
     }
-
     populateJobCurrentStatus(jobName);
     populateJobHistory(jobName);
-
-
-
 }
