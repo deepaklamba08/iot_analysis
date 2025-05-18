@@ -217,6 +217,11 @@ function runJob(){
     })
 }
 
+function showMessageModal(message) {
+    document.getElementById("messageModalBody").textContent = message;
+    $('#messageModal').modal('show');
+}
+
 function openJobHistoryPage(){
     var jobName = document.getElementById('jobNames').value;
     window.open(`/job_history?name=${encodeURIComponent(jobName)}`, "_blank");
@@ -227,6 +232,10 @@ function getJobCurrentStatusUrl(jobName){
 }
 
 function setJobCurrentStatus(responseData){
+    if (responseData.status !== 200) {
+        showMessageModal('No history available for this job. Please run the job to see the history.');
+        return;
+    }
     var jobStatus = responseData.data;
     var jobName=getQueryParam('name');
 
@@ -242,7 +251,12 @@ function setJobCurrentStatus(responseData){
 }
 
 function setJobHistory(responseData){
+    if (responseData.status !== 200) {
+        showMessageModal('No history available for this job. Please run the job to see the history.');
+        return;
+    }
     var jobHistory = responseData.data;
+    console.log(JSON.stringify(responseData, null, 2))
     console.log(JSON.stringify(jobHistory, null, 2))
 
     var jobExeDetailsTable = document.getElementById('jobExeDetailsTable')
