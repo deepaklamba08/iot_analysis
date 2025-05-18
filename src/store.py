@@ -431,7 +431,7 @@ class ExecutionStoreV2(ExecutionStoreBase):
         elements = self.__fetch_all(filter_fun=lambda record: record.job_id == job_id)
         elements = sorted(elements,
                           key=lambda element: datetime.datetime.strptime(element.start_time,
-                                                                         ExecutionStoreV2.__DATE_FORMAT))
+                                                                         ExecutionStoreV2.__DATE_FORMAT), reverse=True)
         return elements
 
 

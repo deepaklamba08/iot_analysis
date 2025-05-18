@@ -136,7 +136,7 @@ class WebAppService:
 
         if is_current:
             return APIResponse(status_code=200,
-                               data=all_history[len(all_history) - 1]).to_response()
+                               data=all_history[0]).to_response()
         else:
             return APIResponse(status_code=200, data=all_history).to_response()
 
