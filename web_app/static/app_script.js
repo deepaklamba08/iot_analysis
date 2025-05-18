@@ -67,6 +67,7 @@ function populateJobNames(){
                 option.textContent = job.name;
                 jobNamesSelect.appendChild(option);
             });
+           applicationDetails();
         } else {
             console.error("Invalid response format: 'data' is not an array.");
         }
