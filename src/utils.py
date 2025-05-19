@@ -85,3 +85,10 @@ def read_config_file(config_file_path: str):
 
     yaml_config = parse_config(config_file_path)
     return yaml_config
+
+
+def get_env_config(key:str):
+    env_config = os.environ.get(key)
+    if not env_config:
+        raise Exception(f'key not found in environment - {key}')
+    return env_config

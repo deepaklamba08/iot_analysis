@@ -141,12 +141,14 @@ class WebAppService:
             return APIResponse(status_code=200, data=all_history).to_response()
 
     def get_user(self, login: str) -> User:
+        self.logger.debug("executing : WebAppService.get_user()")
         return self.user_repo.lookup(user_login=login)
 
-    def create_user(self, login: str, password: str):
+    def create_user(self, login: str, password: str, first_name: str, last_name: str):
+        self.logger.debug("executing : WebAppService.create_user()")
         self.user_repo.create(
-            User(user_login=login, password=password, first_name='', last_name='', create_date='', update_date='',
-                 status=True))
+            User(user_login=login, password=password, first_name=first_name, last_name=last_name,
+                 create_date=None, status=True))
 
     @staticmethod
     def __map_job_history(job_history):

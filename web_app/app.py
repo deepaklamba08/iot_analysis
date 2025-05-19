@@ -7,7 +7,7 @@ if 'PATH_TO_WEB_APP' in os.environ.keys():
 from flask import Flask, request, json, redirect, url_for, session, flash
 from flask import render_template
 from web_app.service import WebAppService, WebAppConfig
-from src.utils import read_config_file
+from src.utils import read_config_file, get_env_config
 import os
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -24,7 +24,7 @@ def create_app(arguments: list):
     service = WebAppService(config)
     app._static_folder = os.path.abspath(config.get_value(key='web_app_static_folder', default='static/'))
     app.debug = config.get_value(key='is_debug', default=True)
-    app.secret_key = 'your_secret_key_here'
+    app.secret_key = get_env_config(config.get_property('api_secret_key'))
 
     def login_required(f):
         @wraps(f)
@@ -45,11 +45,16 @@ def create_app(arguments: list):
             username = request.form['username']
             password = request.form['password']
             user_data = service.get_user(login=username)
-            if user_data and user_data.status and check_password_hash(user_data.password, password):
+            if not user_data:
+                flash('User does not exist', 'danger')
+            elif not user_data.status:
+                flash('user is inactive', 'danger')
+            elif check_password_hash(user_data.password, password):
                 session['username'] = username
                 return redirect(url_for('index'))
             else:
                 flash('Invalid username or password', 'danger')
+
         return render_template('login.html')
 
     @app.route('/index')
@@ -73,7 +78,9 @@ def create_app(arguments: list):
                 flash('Username already exists.', 'danger')
             else:
                 hashed_pw = generate_password_hash(password_input)
-                service.create_user(login=username_input, password=hashed_pw)
+                service.create_user(login=username_input, password=hashed_pw,
+                                    first_name=request.form['firstname'],
+                                    last_name=request.form['lastname'])
                 flash('Registration successful. Please log in.', 'success')
                 return redirect(url_for('login'))
         return render_template('register.html')

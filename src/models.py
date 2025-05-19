@@ -275,7 +275,7 @@ class Job(Entity):
 class User:
 
     def __init__(self, user_login: str, password: str, first_name: str, last_name: str, status: bool, create_date: str,
-                 update_date: str):
+                 update_date: str = None):
         self.user_login = user_login
         self.password = password
         self.first_name = first_name
