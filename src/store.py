@@ -627,6 +627,71 @@ class FileUserRepo(UserRepo):
             stream.write(json.dumps(data, indent=0))
 
 
+class DbUserRepo(UserRepo):
+    """
+        create table platform_users(
+        first_name VARCHAR(64) not null,
+        last_name VARCHAR(64) not null,
+        user_login VARCHAR(64) not null,
+        password VARCHAR(1024) not null,
+        create_date VARCHAR(64),
+        update_date VARCHAR(64),
+        status boolean
+        )
+        """
+
+    def __init__(self, parameters: dict):
+        self.logger = get_logger()
+        self.parameters = parameters
+        import jaydebeapi
+        self.conn = jaydebeapi.connect(jclassname=self.parameters['driver_class_name'],
+                                       url=self.parameters['jdbc_url'],
+                                       driver_args=self.parameters['driver_args'],
+                                       jars=self.parameters['jars'])
+
+    def lookup(self, user_login: str) -> User:
+        self.logger.debug(f'executing : DbUserRepo.lookup()')
+        select_sequence = ['first_name', 'last_name', 'user_login', 'password', 'create_date', 'update_date', 'status']
+        select_query = f"select {', '.join(select_sequence)} from platform_users where user_login = ?"
+        with self.conn.cursor() as curs:
+            curs.execute(select_query, [user_login])
+            return DbUserRepo.__map_record(select_sequence, curs.fetchone())
+
+        self.logger.debug(f'exiting : DbUserRepo.lookup()')
+
+    def create(self, user: User):
+        self.logger.debug('executing : DbUserRepo.create()')
+        insert_sequence = ['first_name', 'last_name', 'user_login', 'password', 'create_date', 'update_date', 'status']
+        query_parameters = [user.first_name, user.last_name, user.user_login, user.password, user.create_date,
+                            user.update_date, user.status]
+        insert_query = f'insert into platform_users({", ".join(insert_sequence)}) values({", ".join(list(map(lambda r: "?", insert_sequence)))})'
+        with self.conn.cursor() as curs:
+            curs.execute(insert_query, query_parameters)
+            self.conn.commit()
+        self.logger.debug('exiting : DbUserRepo.create()')
+
+    @staticmethod
+    def __map_record(select_sequence, data):
+        i = 0
+        data_dict = {}
+        while i < len(select_sequence):
+            data_dict[select_sequence[i]] = data[i]
+            i = i + 1
+        return DbUserRepo.__read_user(data_dict)
+
+    @staticmethod
+    def __read_user(data: dict) -> User:
+        return User(
+            user_login=data['user_login'],
+            password=data['password'],
+            first_name=data.get('first_name', None),
+            last_name=data.get('last_name', None),
+            create_date=data.get('create_date', None),
+            update_date=data.get('update_date', None),
+            status=data.get('status', False)
+        )
+
+
 class UserRepoProvider:
 
     @staticmethod
@@ -634,5 +699,7 @@ class UserRepoProvider:
         user_repo_config = parameters['user_repo']
         if user_repo_config['type'] == 'file':
             return FileUserRepo(data_file=user_repo_config['data_file'])
+        if user_repo_config['type'] == 'db':
+            return DbUserRepo(data_file=user_repo_config['data_file'])
         else:
             raise Exception(f"user repo not supported - f{user_repo_config['type']}")
