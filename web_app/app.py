@@ -86,24 +86,29 @@ def create_app(arguments: list):
         return render_template('register.html')
 
     @app.route('/job_details')
+    @login_required
     def job_details():
         name = request.args.get('name')
         return render_template('job_details.html', name=name)
 
     @app.route('/job_history')
+    @login_required
     def job_history():
         name = request.args.get('name')
         return render_template('job_history.html', name=name)
 
     @app.route('/status')
+    @login_required
     def status():
         return service.status()
 
     @app.route('/jobs/all')
+    @login_required
     def list_all_jobs():
         return service.list_all_jobs()
 
     @app.route('/jobs/run/', methods=['POST'])
+    @login_required
     def run_job():
         content_type = request.headers.get('Content-Type')
 
@@ -115,18 +120,22 @@ def create_app(arguments: list):
             return "Content type is not supported."
 
     @app.route('/jobs/<job_name>/app/details', methods=['GET'])
+    @login_required
     def app_details(job_name: str):
         return service.application_details(job_name=job_name)
 
     @app.route('/jobs/<job_name>/details', methods=['GET'])
+    @login_required
     def get_job_details(job_name: str):
         return service.job_details(job_name=job_name)
 
     @app.route('/jobs/history/<job_name>', methods=['GET'])
+    @login_required
     def get_jobs_history(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=False)
 
     @app.route('/jobs/status/<job_name>', methods=['GET'])
+    @login_required
     def get_job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
 
