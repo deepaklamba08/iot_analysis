@@ -154,6 +154,11 @@ function closePage(){
 }
 
 function setJobDetails(responseData){
+    if (responseData.status_code !== 200) {
+        showMessageModal('Job details not available.');
+        return;
+    }
+
     var jobDetails = responseData.data;
     document.getElementById('jobNameLabel').textContent = jobDetails.name;
     document.getElementById('appIdLabel').textContent = jobDetails.application_id;
@@ -214,6 +219,11 @@ function readTableParameters() {
 
 function runJob(){
     var jobName = document.getElementById('jobNameLabel').textContent.trim();
+    if (jobName === '') {
+        showMessageModal('Job details not available.');
+        return;
+    }
+
     var jobParameters = readTableParameters();
     var url = getJobRunUrl()
     var requestData={

@@ -270,3 +270,16 @@ class Job(Entity):
 
     def __str__(self):
         return f"[object_id = {self.object_id}, name = {self.name}]"
+
+
+class User:
+
+    def __init__(self, user_login: str, password: str, first_name: str, last_name: str, status: bool, create_date: str,
+                 update_date: str):
+        self.user_login = user_login
+        self.password = password
+        self.first_name = first_name
+        self.last_name = last_name
+        self.status = status
+        self.create_date = create_date
+        self.update_date = update_date

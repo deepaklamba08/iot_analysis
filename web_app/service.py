@@ -1,8 +1,7 @@
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
-from src.models import Application, Source, Transformation, Action, Job
 from src.job_executor import JobExecutor
+from src.models import Application, Source, Transformation, Action, Job, User
+from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, UserRepoProvider
 from src.utils import get_logger
-import copy
 from src.utils import read_config_file
 
 
@@ -52,6 +51,7 @@ class WebAppService:
         self.job_store = JobStore(self.analysis_app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.analysis_app_config)
         self.job_executor = JobExecutor(config.analysis_app_config())
+        self.user_repo = UserRepoProvider.create_user_repo(self.analysis_app_config)
 
     def __fetch_job_names(self) -> list:
         active_jobs = list(filter(lambda app: app.status, self.job_store.load_all_jobs()))
@@ -139,6 +139,14 @@ class WebAppService:
                                data=all_history[0]).to_response()
         else:
             return APIResponse(status_code=200, data=all_history).to_response()
+
+    def get_user(self, login: str) -> User:
+        return self.user_repo.lookup(user_login=login)
+
+    def create_user(self, login: str, password: str):
+        self.user_repo.create(
+            User(user_login=login, password=password, first_name='', last_name='', create_date='', update_date='',
+                 status=True))
 
     @staticmethod
     def __map_job_history(job_history):

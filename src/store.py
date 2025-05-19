@@ -1,4 +1,4 @@
-from src.models import Application, Source, Transformation, Action, Job
+from src.models import Application, Source, Transformation, Action, Job, User
 import json
 from src.utils import get_logger, replace_placeholders, Constants
 import os
@@ -137,7 +137,7 @@ class JobStore:
             name=config['name'],
             status=config['status'],
             application_id=config['application_id'],
-            application_name=config.get('application_name','-'),
+            application_name=config.get('application_name', '-'),
             create_date=config.get('create_date'),
             update_date=config.get('update_date'),
             created_by=config.get('created_by'),
@@ -555,3 +555,84 @@ class ExecutionStoreProvider:
             return DbExecutionStoreBase(execution_summary_config)
         else:
             raise Exception(f"execution store not supported - f{execution_summary_config['type']}")
+
+
+class UserRepo(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def lookup(self, user_login: str) -> User:
+        pass
+
+    @abstractmethod
+    def create(self, user: User):
+        pass
+
+
+class FileUserRepo(UserRepo):
+
+    def __init__(self, data_file: str):
+        self.data_file = data_file
+        self.users = {}
+
+    def lookup(self, user_login: str) -> User:
+        if len(self.users) == 0:
+            self.users = self.__fetch_all_records()
+
+        return self.users.get(user_login)
+
+    def create(self, user: User):
+        existing_user = self.lookup(user_login=user.user_login)
+        if existing_user:
+            raise Exception(f'user already exists - {user.user_login}')
+        user.create_date = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+        user.status = True
+        self.users[user.user_login] = user
+        self.__save_records(self.users)
+
+    def __fetch_all_records(self):
+        with open(self.data_file, 'r') as stream:
+            data = json.load(stream)
+            records = {record['user_login']: FileUserRepo.__read_user(record) for record in data}
+            return records
+
+    @staticmethod
+    def __read_user(data: dict) -> User:
+        return User(
+            user_login=data['user_login'],
+            password=data['password'],
+            first_name=data.get('first_name', None),
+            last_name=data.get('last_name', None),
+            create_date=data.get('create_date', None),
+            update_date=data.get('update_date', None),
+            status=data.get('status', False)
+        )
+
+    @staticmethod
+    def __map_user(user: User) -> dict:
+        return {
+            'user_login': user.user_login,
+            'password': user.password,
+            'first_name': user.first_name if user.first_name else '',
+            'last_name': user.last_name if user.last_name else '',
+            'create_date': user.create_date if user.create_date else '',
+            'update_date': user.update_date if user.update_date else '',
+            'status': user.status if user.status else False
+        }
+
+    def __save_records(self, elements: list):
+        data = list(map(lambda record: FileUserRepo.__map_user(record), elements.values()))
+        with open(self.data_file, 'w') as stream:
+            stream.write(json.dumps(data, indent=0))
+
+
+class UserRepoProvider:
+
+    @staticmethod
+    def create_user_repo(parameters: dict) -> UserRepo:
+        user_repo_config = parameters['user_repo']
+        if user_repo_config['type'] == 'file':
+            return FileUserRepo(data_file=user_repo_config['data_file'])
+        else:
+            raise Exception(f"user repo not supported - f{user_repo_config['type']}")

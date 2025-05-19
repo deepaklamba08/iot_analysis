@@ -4,11 +4,13 @@ import sys
 if 'PATH_TO_WEB_APP' in os.environ.keys():
     sys.path.append(os.environ['PATH_TO_WEB_APP'])
 
-from flask import Flask, request, json
+from flask import Flask, request, json, redirect, url_for, session, flash
 from flask import render_template
 from web_app.service import WebAppService, WebAppConfig
 from src.utils import read_config_file
 import os
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 def create_app(arguments: list):
@@ -22,20 +24,69 @@ def create_app(arguments: list):
     service = WebAppService(config)
     app._static_folder = os.path.abspath(config.get_value(key='web_app_static_folder', default='static/'))
     app.debug = config.get_value(key='is_debug', default=True)
+    app.secret_key = 'your_secret_key_here'
+
+    def login_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'username' not in session:
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+
+        return decorated_function
 
     @app.route('/')
+    def home():
+        return redirect(url_for('login'))
+
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            user_data = service.get_user(login=username)
+            if user_data and user_data.status and check_password_hash(user_data.password, password):
+                session['username'] = username
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid username or password', 'danger')
+        return render_template('login.html')
+
+    @app.route('/index')
+    @login_required
     def index():
-        return render_template('index.html')
+        return render_template('index.html', username=session['username'])
+
+    @app.route('/logout')
+    def logout():
+        session.pop('username', None)
+        return redirect(url_for('login'))
+
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        if request.method == 'POST':
+            username_input = request.form['username']
+            password_input = request.form['password']
+
+            user_data = service.get_user(login=username_input)
+            if user_data:
+                flash('Username already exists.', 'danger')
+            else:
+                hashed_pw = generate_password_hash(password_input)
+                service.create_user(login=username_input, password=hashed_pw)
+                flash('Registration successful. Please log in.', 'success')
+                return redirect(url_for('login'))
+        return render_template('register.html')
 
     @app.route('/job_details')
     def job_details():
         name = request.args.get('name')
-        return render_template('job_details.html',name=name)
+        return render_template('job_details.html', name=name)
 
     @app.route('/job_history')
     def job_history():
         name = request.args.get('name')
-        return render_template('job_history.html',name=name)
+        return render_template('job_history.html', name=name)
 
     @app.route('/status')
     def status():
