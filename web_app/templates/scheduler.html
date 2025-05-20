@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="{{url_for('static', filename='app_script.js')}}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 10;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            padding: 30px;
+        }
+
+        .schedulerDetailsLabel {
+            color: white;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .form-group span {
+            background-color: #e9ecef;
+        }
+
+        .detail-span {
+            display: inline-block;
+            width: 100%;
+            padding: 6px 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            min-height: 34px;
+        }
+
+        #schedulerConfigurationTable th,
+        #schedulerConfigurationTable td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #schedulerConfigurationTable {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #schedulerConfigurationTable th {
+            background-color: #337ab7;
+            color: white;
+        }
+
+        .centered-panel {
+            margin-top: -90px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .bottom-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+
+<body onload="initSchedulerPage()">
+
+<div class="panel panel-primary centered-panel">
+    <div class="panel-heading">
+        <label id="schedulerDetailsLabel" class="schedulerDetailsLabel">Scheduler Details</label>
+    </div>
+
+    <div class="panel-body" id="schedulerDetailsSection">
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Scheduler Name:</strong></div>
+            <div class="col-sm-9"><span id="schedulerNameLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Description:</strong></div>
+            <div class="col-sm-9"><span id="schedulerDescriptionLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Status:</strong></div>
+            <div class="col-sm-9"><span id="schedulerStatusLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Create Date:</strong></div>
+            <div class="col-sm-9"><span id="schedulerCreateDateLabel" class="detail-span"></span></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Owner:</strong></div>
+            <div class="col-sm-9"><span id="schedulerOwnerLabel" class="detail-span"></span></div>
+        </div>
+
+        <hr>
+        <h4>Scheduler Configuration</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="schedulerConfigurationTable">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody id="schedulerConfigurationTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Button -->
+        <div class="bottom-button">
+            <button type="button" class="btn btn-primary" onclick="startScheduler()">Start</button>
+            <button type="button" class="btn btn-primary" onclick="">Stop</button>
+            <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Message Modal -->
+<div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title" id="messageModalLabel">Info</h4>
+      </div>
+
+      <div class="modal-body">
+        <p id="messageModalBody">Your message goes here.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
