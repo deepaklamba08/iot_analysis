@@ -21,6 +21,14 @@ function getJobCurrentStatusUrl(jobName){
   return BASE_URL+"/jobs/status/"+jobName
 }
 
+function getJobSchedulerInfoUrl(){
+  return BASE_URL+"/executor/info";
+}
+
+function getJobSchedulerUrl(){
+  return BASE_URL+"/executor";
+}
+
 function failureCallback(error){
   console.error('API Call Error:', error);
 }
@@ -247,6 +255,9 @@ function openJobHistoryPage(){
     window.open(`/job_history?name=${encodeURIComponent(jobName)}`, "_blank");
 }
 
+function openSchedulerPage(){
+    window.open(`/scheduler`, "_blank");
+}
 
 function setJobCurrentStatus(responseData){
     if (responseData.status_code !== 200) {
@@ -301,4 +312,34 @@ function initHistoryPage(){
     }
     populateJobCurrentStatus(jobName);
     populateJobHistory(jobName);
+}
+
+
+function setSchedulerInfo(responseData){
+    if (responseData.status_code !== 200) {
+        showMessageModal('No Scheduler information available.');
+        return;
+    }
+    var info = responseData.data;
+    document.getElementById('schedulerNameLabel').textContent = info.name;
+    document.getElementById('schedulerDescriptionLabel').textContent = info.description;
+    document.getElementById('schedulerStatusLabel').textContent = info.status;
+    document.getElementById('schedulerCreateDateLabel').textContent = info.create_date;
+    document.getElementById('schedulerOwnerLabel').textContent = info.created_by;
+
+}
+
+function initSchedulerPage(){
+    var url = getJobSchedulerInfoUrl()
+    makeAPICall(url,'GET',null,setSchedulerInfo,failureCallback)
+}
+
+function startScheduler(){
+    var requestData = {
+        "action": "start"
+    };
+    var url = getJobSchedulerUrl()
+    makeAPICall(url,'PUT',requestData,function(response){
+        showMessageModal('Scheduler started successfully.');
+    },failureCallback)
 }

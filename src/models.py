@@ -283,3 +283,22 @@ class User:
         self.status = status
         self.create_date = create_date
         self.update_date = update_date
+
+
+class SchedulerData(Entity):
+    def __init__(self,
+                 object_id: str,
+                 name: str,
+                 status: bool,
+                 create_date: str = None,
+                 created_by: str = None,
+                 description: str = None,
+                 config: dict = {}):
+        self.object_id = object_id
+        self.name = name
+        self.status = status
+        self.create_date = create_date
+        self.created_by = created_by
+        self.description = description
+
+        self.config = config

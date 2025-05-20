@@ -5,7 +5,7 @@ if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
     sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 
 from src.processor import Orchestrator
-from src.models import RuntimeContext
+from src.models import RuntimeContext, SchedulerData
 from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
 from src.utils import get_logger, read_config_file
 
@@ -76,6 +76,20 @@ class JobExecutor:
 
         orchestrator.schedule_job(job=job, submitter=submitter, run_type=run_type, parameters=job_parameters)
         self.logger.debug('exiting : JobExecutor.execute_job()')
+
+    def get_executor_info(self):
+        self.logger.debug('executing : JobExecutor.get_executor_info()')
+        executor_info = SchedulerData(
+            object_id='1',
+            name='scheduler',
+            status=True,
+            create_date='-',
+            created_by='-',
+            description='-',
+            config={}
+        )
+        self.logger.debug('exiting : JobExecutor.get_executor_info()')
+        return executor_info
 
 
 if __name__ == '__main__':

@@ -150,6 +150,30 @@ class WebAppService:
             User(user_login=login, password=password, first_name=first_name, last_name=last_name,
                  create_date=None, status=True))
 
+    def executor_info(self):
+        self.logger.debug("executing : WebAppService.executor_info()")
+        executor_info = self.job_executor.get_executor_info()
+        if executor_info:
+            return APIResponse(status_code=200, data=WebAppService.__map_executor_info(executor_info)).to_response()
+        else:
+            return APIResponse(status_code=204, message="Executor info not found").to_response()
+
+    def executor_action(self, action: str):
+        self.logger.debug("executing : WebAppService.executor_action()")
+        self.job_executor.execute_jobs()
+        return APIResponse(status_code=200, data={}).to_response()
+
+    @staticmethod
+    def __map_executor_info(executor_info):
+        return {
+            "name": executor_info.name,
+            "status": WebAppService.__map_status(executor_info.status),
+            "create_date": (executor_info.create_date, "-")[executor_info.create_date is None],
+            "created_by": (executor_info.created_by, "-")[executor_info.created_by is None],
+            "description": executor_info.description,
+            "config": executor_info.config
+        }
+
     @staticmethod
     def __map_job_history(job_history):
         if job_history.run_by is None:

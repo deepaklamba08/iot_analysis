@@ -71,6 +71,7 @@
         }
 
 
+
     </style>
 </head>
 
@@ -89,8 +90,8 @@
             <button class="btn btn-primary" onclick="applicationDetails()">Application Details</button>
             <button class="btn btn-primary" onclick="openJobDetailsPage()">Job Details</button>
             <button class="btn btn-primary" onclick="openJobHistoryPage()">Load History</button>
-            <!-- Add in the sidebar -->
-<button class="btn btn-danger" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+            <button class="btn btn-primary" onclick="openSchedulerPage()">Scheduler</button>
+            <button class="btn btn-danger" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
 
         </div>
 

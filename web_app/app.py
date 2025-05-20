@@ -97,6 +97,11 @@ def create_app(arguments: list):
         name = request.args.get('name')
         return render_template('job_history.html', name=name)
 
+    @app.route('/scheduler')
+    @login_required
+    def scheduler():
+        return render_template('scheduler.html')
+
     @app.route('/status')
     @login_required
     def status():
@@ -138,5 +143,20 @@ def create_app(arguments: list):
     @login_required
     def get_job_status(job_name: str):
         return service.jobs_history(job_name=job_name, is_current=True)
+
+    @app.route('/executor/info', methods=['GET'])
+    @login_required
+    def executor_info():
+        return service.executor_info()
+
+    @app.route('/executor', methods=['PUT'])
+    @login_required
+    def executor_action():
+        content_type = request.headers.get('Content-Type')
+        if content_type == 'application/json':
+            request_data = json.loads(request.data.decode())
+            return service.executor_action(action=request_data['action'])
+        else:
+            return "Content type is not supported."
 
     return app
