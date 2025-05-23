@@ -103,6 +103,23 @@ function addRow(rawData,tableBody){
     tableBody.appendChild(newRow);
 }
 
+function showSourceDetailsModal(sourceName) {
+    document.getElementById("sourceDetailsModalLabel").textContent = sourceName;
+    $('#sourceDetailsModal').modal('show');
+}
+
+
+function showTransformationDetailsModal(transformationName) {
+    document.getElementById("transformationDetailsModalLabel").textContent = transformationName;
+    $('#transformationDetailsModal').modal('show');
+}
+
+function showActionDetailsModal(actionName) {
+    document.getElementById("actionDetailsModalLabel").textContent = actionName;
+    $('#actionDetailsModal').modal('show');
+}
+
+
 function setApplicationDetails(responseData){
     var appDetails = responseData.data
     document.getElementById('appNameLabel').textContent = appDetails.name;
@@ -121,19 +138,49 @@ function setApplicationDetails(responseData){
     var actions = appDetails.actions;
 
     sources.forEach(element=>{
-        var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
-        var link = `<a href=${value} target="_blank">${element.name}</a>`;
+        var details = encodeURIComponent(JSON.stringify(element));
+        var link=`<a href="#" class="source-link" style="color: Green;" data-details="${details}">${element.name}</a>`
         addRow([link,'Source',element.type,element.description],appElementsTable);
     });
+
+    document.querySelectorAll('.source-link').forEach(link => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            var details = this.dataset.details;
+            var sourceDetails = JSON.parse(decodeURIComponent(details));
+            showSourceDetailsModal('Source: '+sourceDetails.name)
+        });
+    });
+
+
     transformations.forEach(element=>{
-        var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
-        var link = `<a href=${value} target="_blank">${element.name}</a>`;
+        var details = encodeURIComponent(JSON.stringify(element));
+        var link=`<a href="#" class="transformation-link" style="color: Blue;" data-details="${details}">${element.name}</a>`
         addRow([link,'Transformations',element.type,element.description],appElementsTable);
     });
+
+    document.querySelectorAll('.transformation-link').forEach(link => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            var details = this.dataset.details;
+            var trDetails = JSON.parse(decodeURIComponent(details));
+            showTransformationDetailsModal('Transformation: '+trDetails.name)
+        });
+    });
+
     actions.forEach(element=>{
-        var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
-        var link = `<a href=${value} target="_blank">${element.name}</a>`;
+        var details = encodeURIComponent(JSON.stringify(element));
+        var link=`<a href="#" class="action-link" style="color: Orange;" data-details="${details}">${element.name}</a>`
         addRow([link,'Action',element.type,element.description],appElementsTable);
+    });
+
+    document.querySelectorAll('.action-link').forEach(link => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            var details = this.dataset.details;
+            var trDetails = JSON.parse(decodeURIComponent(details));
+            showActionDetailsModal('Action: '+trDetails.name)
+        });
     });
 }
 
@@ -296,7 +343,8 @@ function setJobHistory(responseData){
 
      jobHistory.forEach(element=>{
         var metrics = encodeURIComponent(JSON.stringify(element.metrics));
-        var link=`<a href="#" class="status-link" data-metrics="${metrics}">${element.status}</a>`
+        var color = element.status === 'Failed' ? 'red' : 'Green';
+        var link=`<a href="#" class="status-link" style="color: ${color};" data-metrics="${metrics}">${element.status}</a>`
         addRow([element.run_by,element.run_type,link,element.start_time,element.end_time,element.message],jobExeDetailsTable);
     });
 
