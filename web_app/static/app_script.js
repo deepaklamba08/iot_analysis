@@ -95,7 +95,7 @@ function clearTableContents(tableBody){
     }
 }
 
-function addRaw(rawData,tableBody){
+function addRow(rawData,tableBody){
     var newRow = document.createElement('tr');
     var values = rawData.map(item => `<td>${item}</td>`).join('')
     var rowHtml = `<tr>${values}</tr>`;
@@ -123,17 +123,17 @@ function setApplicationDetails(responseData){
     sources.forEach(element=>{
         var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
         var link = `<a href=${value} target="_blank">${element.name}</a>`;
-        addRaw([link,'Source',element.type,element.description],appElementsTable);
+        addRow([link,'Source',element.type,element.description],appElementsTable);
     });
     transformations.forEach(element=>{
         var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
         var link = `<a href=${value} target="_blank">${element.name}</a>`;
-        addRaw([link,'Transformations',element.type,element.description],appElementsTable);
+        addRow([link,'Transformations',element.type,element.description],appElementsTable);
     });
     actions.forEach(element=>{
         var value = "source_detail.html?id="+encodeURIComponent(element.object_id);
         var link = `<a href=${value} target="_blank">${element.name}</a>`;
-        addRaw([link,'Action',element.type,element.description],appElementsTable);
+        addRow([link,'Action',element.type,element.description],appElementsTable);
     });
 }
 
@@ -186,8 +186,8 @@ function setJobDetails(responseData){
 
     var jobParameters = jobDetails.job_parameters;
     Object.keys(jobParameters).forEach(paramName => {
-        addRaw([paramName,'-',jobParameters[paramName]],jobParametersTable);
-        addRaw([paramName,jobParameters[paramName]],jobRunParametersTable);
+        addRow([paramName,'-',jobParameters[paramName]],jobParametersTable);
+        addRow([paramName,jobParameters[paramName]],jobRunParametersTable);
     });
 }
 
@@ -245,9 +245,16 @@ function runJob(){
     },failureCallback)
 }
 
-function showMessageModal(message) {
+function showMessageModal(message,title='Info') {
+    document.getElementById("messageModalLabel").textContent = title;
     document.getElementById("messageModalBody").textContent = message;
     $('#messageModal').modal('show');
+}
+
+
+function showMetricsMessageModal(title='Metrics') {
+    document.getElementById("metricsMessageModalLabel").textContent = title;
+    $('#metricsMessageModal').modal('show');
 }
 
 function openJobHistoryPage(){
@@ -288,7 +295,28 @@ function setJobHistory(responseData){
     clearTableContents(jobExeDetailsTable);
 
      jobHistory.forEach(element=>{
-        addRaw([element.run_by,element.run_type,element.status,element.start_time,element.end_time,element.message],jobExeDetailsTable);
+        var metrics = encodeURIComponent(JSON.stringify(element.metrics));
+        var link=`<a href="#" class="status-link" data-metrics="${metrics}">${element.status}</a>`
+        addRow([element.run_by,element.run_type,link,element.start_time,element.end_time,element.message],jobExeDetailsTable);
+    });
+
+    document.querySelectorAll('.status-link').forEach(link => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            var metrics = this.dataset.metrics;
+            var metricsData = JSON.parse(decodeURIComponent(metrics));
+            if (metricsData.hasOwnProperty('databag_metrics')) {
+                console.log(JSON.stringify(metricsData, null, 2))
+                var metricsTable = document.getElementById('metricsMessageModalTable');
+                metricsData.databag_metrics.forEach(element=>{
+                   addRow([element.type,element.name,element.provider,element.records],metricsTable);
+                });
+                showMetricsMessageModal();
+            } else {
+                showMessageModal('Metrics not available.','Metrics');
+            }
+
+        });
     });
 
 }

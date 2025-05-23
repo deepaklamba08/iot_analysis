@@ -76,6 +76,9 @@
 
 
 
+
+
+
     </style>
 </head>
 
@@ -171,6 +174,37 @@
 
             <div class="modal-body">
                 <p id="messageModalBody">Your message goes here.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="metricsMessageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="metricsMessageModalLabel">Metrics</h4>
+            </div>
+
+            <div class="modal-body">
+                <table class="table table-bordered" id="metricsMessageModalTable">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Provide</th>
+                        <th>Record Count</th>
+                    </tr>
+                    </thead>
+                    <tbody id="metricsMessageModalTableBody">
+                    </tbody>
+                </table>
             </div>
 
             <div class="modal-footer">
