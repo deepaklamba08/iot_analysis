@@ -343,6 +343,7 @@ function setJobHistory(responseData){
             var metricsData = JSON.parse(decodeURIComponent(metrics));
             if (metricsData.hasOwnProperty('databag_metrics')) {
                 var metricsTable = document.getElementById('metricsMessageModalTable');
+                clearTableContents(metricsTable)
                 metricsData.databag_metrics.forEach(element=>{
                    addRow([element.type,element.name,element.provider,element.records],metricsTable);
                 });
@@ -444,5 +445,5 @@ function startScheduler(){
 }
 
 function stopScheduler(){
-    schedulerAction('stop','Scheduler started successfully.');
+    schedulerAction('stop','Scheduler stopped successfully.');
 }
