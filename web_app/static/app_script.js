@@ -268,7 +268,6 @@ function runJob(){
                     jobName: jobName,
                     jobParameters:jobParameters
                     };
-    console.log("Request Data:", requestData);
     makeAPICall(url,'POST',requestData,function(response){
         $('#runJobModal').modal('hide');
         document.getElementById("messageModalBody").textContent = `Job '${jobName}' has been started successfully.`;
@@ -338,7 +337,6 @@ function setJobHistory(responseData){
             var metrics = this.dataset.metrics;
             var metricsData = JSON.parse(decodeURIComponent(metrics));
             if (metricsData.hasOwnProperty('databag_metrics')) {
-                console.log(JSON.stringify(metricsData, null, 2))
                 var metricsTable = document.getElementById('metricsMessageModalTable');
                 metricsData.databag_metrics.forEach(element=>{
                    addRow([element.type,element.name,element.provider,element.records],metricsTable);
@@ -387,8 +385,6 @@ function setSchedulerInfo(responseData){
     document.getElementById('schedulerState').textContent = info.current_state;
     document.getElementById('schedulerCreateDateLabel').textContent = info.create_date;
     document.getElementById('schedulerOwnerLabel').textContent = info.created_by;
-
-    console.log("Scheduler Info:", info.config);
 
     if(info.config.hasOwnProperty('params')){
        var schParamsTable = document.getElementById('schedulerConfigurationTable')
