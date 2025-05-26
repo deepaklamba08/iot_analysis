@@ -230,6 +230,11 @@ function setJobDetails(responseData){
     jobParametersTextIp.textContent = JSON.stringify(jobParameters, null, 2)
     jobParametersTextIp.disabled = true;
 
+    var jobParametersTable = document.getElementById('jobParametersTable')
+    clearTableContents(jobParametersTable);
+    Object.keys(jobParameters).forEach(key => {
+        addRow([key,'-',jobParameters[key]],jobParametersTable);
+    });
 }
 
 function initJobDetailsPage(){
