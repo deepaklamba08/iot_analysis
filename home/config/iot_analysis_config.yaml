@@ -6,3 +6,6 @@ app:
   user_repo:
     type: file
     data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/users.json
+  sch_repo:
+    type: file
+    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/sch.json
