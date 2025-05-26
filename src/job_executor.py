@@ -6,7 +6,7 @@ if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
 
 from src.processor import Orchestrator
 from src.models import RuntimeContext, SchedulerData
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore
+from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, SchedulerRepo, SchedulerRepoProvider
 from src.utils import get_logger, read_config_file
 
 
@@ -19,6 +19,7 @@ class JobExecutor:
         self.app_config = yaml_config['app']
         self.job_store = JobStore(self.app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.app_config)
+        self.sch_repo = SchedulerRepoProvider.create_scheduler_repo(self.app_config)
 
     def create_runtime_context(self, parameters) -> RuntimeContext:
         import copy
@@ -29,6 +30,15 @@ class JobExecutor:
 
     def execute_jobs(self):
         self.logger.debug('executing : JobExecutor.execute_job()')
+        sch_data = self.sch_repo.lookup()
+
+        if not sch_data:
+            raise Exception("Scheduler data not found. Please ensure the scheduler is initialized.")
+
+        if sch_data.current_state != "running":
+            self.logger.debug(f"Scheduler is not running. Current status: {sch_data.current_state}")
+            return
+
         jobs_to_run = self.execution_store.get_job_history_by_status(statuses=['scheduled'])
 
         self.logger.debug(f'no of scheduled jobs - {len(jobs_to_run)}')
@@ -77,18 +87,53 @@ class JobExecutor:
         orchestrator.schedule_job(job=job, submitter=submitter, run_type=run_type, parameters=job_parameters)
         self.logger.debug('exiting : JobExecutor.execute_job()')
 
+
+class JobExecutorOrchestrator:
+
+    def __init__(self, sch_repo: SchedulerRepo, executor: JobExecutor):
+        self.logger = get_logger()
+        self.sch_repo = sch_repo
+        self.executor = executor
+
+    def current_status(self):
+        self.logger.debug('executing : JobExecutorOrchestrator.current_status()')
+        return self.sch_repo.get_status()
+
+    def start(self):
+        self.logger.debug('executing : JobExecutorOrchestrator.start()')
+
+        curr_status = self.current_status()
+        if curr_status == 'running':
+            self.logger.debug('Job executor is already running')
+            return
+        elif curr_status == 'stopped':
+            self.logger.debug('Job executor is stopped, starting now')
+            self.sch_repo.make_action(action='start')
+        else:
+            raise Exception(f'Invalid status - {curr_status}')
+        pass
+
+    def stop(self):
+        self.logger.debug('executing : JobExecutorOrchestrator.stop()')
+
+        curr_status = self.current_status()
+        if curr_status == 'running':
+            self.logger.debug('Job executor is running, stopping now')
+            self.sch_repo.make_action(action='stop')
+        elif curr_status == 'stopped':
+            self.logger.debug('Job executor is already stopped')
+            return
+        else:
+            raise Exception(f'Invalid status - {curr_status}')
+
+    def schedule_job(self, job_id: str, submitter: str = '-', run_type: str = '-', parameters: dict = {}):
+        self.logger.debug('executing : JobExecutorOrchestrator.schedule_job()')
+        self.executor.schedule_job(job_id=job_id, submitter=submitter, run_type=run_type, parameters=parameters)
+
     def get_executor_info(self):
-        self.logger.debug('executing : JobExecutor.get_executor_info()')
-        executor_info = SchedulerData(
-            object_id='1',
-            name='scheduler',
-            status=True,
-            create_date='-',
-            created_by='-',
-            description='-',
-            config={}
-        )
-        self.logger.debug('exiting : JobExecutor.get_executor_info()')
+        self.logger.debug('executing : JobExecutorOrchestrator.get_executor_info()')
+        executor_info = self.sch_repo.lookup()
+        self.logger.debug('exiting : JobExecutorOrchestrator.get_executor_info()')
         return executor_info
 
 

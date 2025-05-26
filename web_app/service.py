@@ -1,6 +1,6 @@
-from src.job_executor import JobExecutor
+from src.job_executor import JobExecutor, JobExecutorOrchestrator
 from src.models import Application, Source, Transformation, Action, Job, User
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, UserRepoProvider
+from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, UserRepoProvider, SchedulerRepoProvider
 from src.utils import get_logger
 from src.utils import read_config_file
 
@@ -50,7 +50,11 @@ class WebAppService:
         self.application_store = ApplicationStore(self.analysis_app_config['app_config_file'])
         self.job_store = JobStore(self.analysis_app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.analysis_app_config)
-        self.job_executor = JobExecutor(config.analysis_app_config())
+
+        self.job_exe_orch = JobExecutorOrchestrator(
+            sch_repo=SchedulerRepoProvider.create_scheduler_repo(self.analysis_app_config),
+            executor=JobExecutor(config.analysis_app_config())
+        )
         self.user_repo = UserRepoProvider.create_user_repo(self.analysis_app_config)
 
     def __fetch_job_names(self) -> list:
@@ -114,7 +118,7 @@ class WebAppService:
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
 
-        self.job_executor.schedule_job(
+        self.job_exe_orch.schedule_job(
             job_id=job_details[job_name], submitter='UI',
             parameters=job_parameters
         )
@@ -152,7 +156,7 @@ class WebAppService:
 
     def executor_info(self):
         self.logger.debug("executing : WebAppService.executor_info()")
-        executor_info = self.job_executor.get_executor_info()
+        executor_info = self.job_exe_orch.get_executor_info()
         if executor_info:
             return APIResponse(status_code=200, data=WebAppService.__map_executor_info(executor_info)).to_response()
         else:
@@ -160,7 +164,13 @@ class WebAppService:
 
     def executor_action(self, action: str):
         self.logger.debug("executing : WebAppService.executor_action()")
-        self.job_executor.execute_jobs()
+        if action == 'start':
+            self.job_exe_orch.start()
+        elif action == 'stop':
+            self.job_exe_orch.stop()
+        else:
+            self.logger.error(f'Invalid action - {action}')
+            return APIResponse(status_code=400, message=f"Invalid action: {action}").to_response()
         return APIResponse(status_code=200, data={}).to_response()
 
     @staticmethod
@@ -171,7 +181,8 @@ class WebAppService:
             "create_date": (executor_info.create_date, "-")[executor_info.create_date is None],
             "created_by": (executor_info.created_by, "-")[executor_info.created_by is None],
             "description": executor_info.description,
-            "config": executor_info.config
+            "config": executor_info.config,
+            "current_state": executor_info.current_state
         }
 
     @staticmethod

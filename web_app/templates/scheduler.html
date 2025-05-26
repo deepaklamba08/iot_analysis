@@ -98,6 +98,12 @@
             <div class="col-sm-9"><span id="schedulerStatusLabel" class="detail-span"></span></div>
         </div>
 
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>State:</strong></div>
+            <div class="col-sm-9"><span id="schedulerState" class="detail-span"></span></div>
+        </div>
+
         <div class="row form-group">
             <div class="col-sm-3"><strong>Create Date:</strong></div>
             <div class="col-sm-9"><span id="schedulerCreateDateLabel" class="detail-span"></span></div>
@@ -126,8 +132,8 @@
 
         <!-- Bottom Button -->
         <div class="bottom-button">
-            <button type="button" class="btn btn-primary" onclick="startScheduler()">Start</button>
-            <button type="button" class="btn btn-primary" onclick="">Stop</button>
+            <button type="button" id = "startSchedulerButton" class="btn btn-primary" onclick="startScheduler()">Start</button>
+            <button type="button" id = "stopSchedulerButton" class="btn btn-primary" onclick="stopScheduler()">Stop</button>
             <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
         </div>
 

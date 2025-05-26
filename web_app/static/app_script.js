@@ -400,9 +400,36 @@ function setSchedulerInfo(responseData){
     document.getElementById('schedulerNameLabel').textContent = info.name;
     document.getElementById('schedulerDescriptionLabel').textContent = info.description;
     document.getElementById('schedulerStatusLabel').textContent = info.status;
+    document.getElementById('schedulerState').textContent = info.current_state;
     document.getElementById('schedulerCreateDateLabel').textContent = info.create_date;
     document.getElementById('schedulerOwnerLabel').textContent = info.created_by;
 
+    console.log("Scheduler Info:", info.config);
+
+    if(info.config.hasOwnProperty('params')){
+       var schParamsTable = document.getElementById('schedulerConfigurationTable')
+       clearTableContents(schParamsTable);
+       var parameters = info.config.params;
+       parameters.forEach(schParam => {
+         addRow([schParam.name,schParam.description,schParam.value],schParamsTable);
+       }
+       )
+    }
+
+    toggleSchButton(info.current_state);
+}
+
+function toggleSchButton(current_state){
+
+    if(current_state === 'running') {
+        document.getElementById('startSchedulerButton').disabled = true;
+        document.getElementById('stopSchedulerButton').disabled = false;
+    } else if(current_state === 'stopped') {
+        document.getElementById('startSchedulerButton').disabled = false;
+        document.getElementById('stopSchedulerButton').disabled = true;
+    }else{
+        showMessageModal("Scheduler is in invalid state.");
+    }
 }
 
 function initSchedulerPage(){
@@ -410,12 +437,27 @@ function initSchedulerPage(){
     makeAPICall(url,'GET',null,setSchedulerInfo,failureCallback)
 }
 
-function startScheduler(){
+function schedulerAction(action,message){
     var requestData = {
-        "action": "start"
+        "action": action
     };
     var url = getJobSchedulerUrl()
     makeAPICall(url,'PUT',requestData,function(response){
-        showMessageModal('Scheduler started successfully.');
+        if(response.status_code === 200) {
+            var schAction = action === 'start' ? 'running' : 'stopped';
+            document.getElementById('schedulerState').textContent = schAction;
+            toggleSchButton(schAction);
+            showMessageModal(message);
+        } else {
+            showMessageModal("Something went wrong. Please try again later.");
+        }
     },failureCallback)
+}
+
+function startScheduler(){
+    schedulerAction('start','Scheduler started successfully.');
+}
+
+function stopScheduler(){
+    schedulerAction('stop','Scheduler started successfully.');
 }

@@ -290,6 +290,7 @@ class SchedulerData(Entity):
                  object_id: str,
                  name: str,
                  status: bool,
+                 current_state: str,
                  create_date: str = None,
                  created_by: str = None,
                  description: str = None,
@@ -297,6 +298,7 @@ class SchedulerData(Entity):
         self.object_id = object_id
         self.name = name
         self.status = status
+        self.current_state = current_state
         self.create_date = create_date
         self.created_by = created_by
         self.description = description

@@ -1,10 +1,11 @@
-from src.models import Application, Source, Transformation, Action, Job, User
-import json
-from src.utils import get_logger, replace_placeholders, Constants
-import os
 import datetime
+import json
+import os
 import uuid
 from abc import ABC, abstractmethod
+
+from src.models import Application, Source, Transformation, Action, Job, User, SchedulerData
+from src.utils import get_logger, replace_placeholders, Constants
 
 
 class ApplicationStore:
@@ -700,6 +701,117 @@ class UserRepoProvider:
         if user_repo_config['type'] == 'file':
             return FileUserRepo(data_file=user_repo_config['data_file'])
         if user_repo_config['type'] == 'db':
-            return DbUserRepo(data_file=user_repo_config['data_file'])
+            return DbUserRepo(data_file=user_repo_config)
         else:
             raise Exception(f"user repo not supported - f{user_repo_config['type']}")
+
+
+class SchedulerRepo(ABC):
+
+    @abstractmethod
+    def lookup(self) -> SchedulerData:
+        pass
+
+    @abstractmethod
+    def get_status(self):
+        pass
+
+    @abstractmethod
+    def make_action(self, action: str):
+        pass
+
+
+class FileSchedulerRepo(SchedulerRepo):
+    def __init__(self, data_file: str):
+        self.data_file = data_file
+        self.sch_info = None
+        self.__refresh_sch_data()
+
+    def __refresh_sch_data(self):
+        with open(self.data_file, 'r') as stream:
+            data = json.load(stream)
+            self.sch_info = FileSchedulerRepo.__read_schedule_data(data)
+
+    @staticmethod
+    def __read_schedule_data(data: dict) -> SchedulerData:
+        return SchedulerData(
+            object_id=data['object_id'],
+            name=data['name'],
+            description=data.get('description', None),
+            status=data['status'],
+            current_state=data.get('current_state', 'idle'),
+            create_date=data.get('create_date', None),
+            created_by=data.get('created_by', None),
+            config=data.get('config', {})
+        )
+
+    @staticmethod
+    def __map_schedule_data(sch_data: SchedulerData) -> dict:
+        return {
+            "object_id": sch_data.object_id if sch_data.object_id else str(uuid.uuid1()),
+            "name": sch_data.name,
+            "status": sch_data.status,
+            "current_state": sch_data.current_state,
+            "create_date": sch_data.create_date,
+            "description": sch_data.description,
+            "created_by": sch_data.created_by,
+            "config": sch_data.config
+        }
+
+    def __save_records(self, sch_data: SchedulerData):
+        with open(self.data_file, 'w') as stream:
+            data = FileSchedulerRepo.__map_schedule_data(sch_data)
+            stream.write(json.dumps(data, indent=0))
+
+    def lookup(self) -> SchedulerData:
+        self.__refresh_sch_data()
+        return self.sch_info
+
+    def get_status(self):
+        self.__refresh_sch_data()
+        return self.sch_info.current_state
+
+    def make_action(self, action: str):
+
+        if action == 'start':
+            self.sch_info.current_state = 'running'
+        elif action == 'stop':
+            self.sch_info.current_state = 'stopped'
+        else:
+            raise Exception(f'unknown action - {action}')
+
+        self.__save_records(sch_data=self.sch_info)
+
+
+class DbSchedulerRepo(SchedulerRepo):
+
+    def __init__(self, parameters: dict):
+        self.logger = get_logger()
+        self.parameters = parameters
+        import jaydebeapi
+        self.conn = jaydebeapi.connect(jclassname=self.parameters['driver_class_name'],
+                                       url=self.parameters['jdbc_url'],
+                                       driver_args=self.parameters['driver_args'],
+                                       jars=self.parameters['jars'])
+
+    def lookup(self) -> SchedulerData:
+        pass
+
+    def get_status(self):
+        pass
+
+    def make_action(self, action: str):
+        pass
+
+
+class SchedulerRepoProvider:
+
+    @staticmethod
+    def create_scheduler_repo(parameters: dict) -> SchedulerRepo:
+        sch_config = parameters['sch_repo']
+        if sch_config['type'] == 'file':
+            return FileSchedulerRepo(data_file=sch_config['data_file'])
+        if sch_config['type'] == 'db':
+            return DbSchedulerRepo(data_file=sch_config)
+        else:
+            raise Exception(f"user repo not supported - f{sch_config['type']}")
