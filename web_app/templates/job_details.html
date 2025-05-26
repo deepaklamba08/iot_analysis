@@ -71,6 +71,7 @@
             text-align: center;
         }
 
+
     </style>
 </head>
 
@@ -168,18 +169,8 @@
                         parameters</label>
                 </div>
 
-                <!-- Parameters Table -->
-                <div class="table-responsive">
-                    <table class="table table-bordered" id=jobRunParametersTable">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Value</th>
-                        </tr>
-                        </thead>
-                        <tbody id="jobRunParametersTableBody">
-                        </tbody>
-                    </table>
+                <div class="panel-body">
+                    <textarea id="jobRunParametersInput" class="form-control" rows="6" style="resize: none;"></textarea>
                 </div>
             </div>
 
@@ -194,23 +185,23 @@
 
 <!-- Message Modal -->
 <div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
 
-      <div class="modal-header">
-        <h4 class="modal-title" id="messageModalLabel">Info</h4>
-      </div>
+            <div class="modal-header">
+                <h4 class="modal-title" id="messageModalLabel">Info</h4>
+            </div>
 
-      <div class="modal-body">
-        <p id="messageModalBody">Your message goes here.</p>
-      </div>
+            <div class="modal-body">
+                <p id="messageModalBody">Your message goes here.</p>
+            </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
-      </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+            </div>
 
+        </div>
     </div>
-  </div>
 </div>
 
 </body>

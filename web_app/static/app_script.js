@@ -225,17 +225,11 @@ function setJobDetails(responseData){
     document.getElementById('jobOwnerLabel').textContent = jobDetails.created_by;
     document.getElementById('jobScheduledLabel').textContent = jobDetails.is_scheduled;
 
-    var jobParametersTable = document.getElementById('jobParametersTable')
-    clearTableContents(jobParametersTable);
-
-    var jobRunParametersTable = document.getElementById('jobRunParametersTableBody')
-    clearTableContents(jobRunParametersTable);
-
     var jobParameters = jobDetails.job_parameters;
-    Object.keys(jobParameters).forEach(paramName => {
-        addRow([paramName,'-',jobParameters[paramName]],jobParametersTable);
-        addRow([paramName,jobParameters[paramName]],jobRunParametersTable);
-    });
+    var jobParametersTextIp = document.getElementById("jobRunParametersInput");
+    jobParametersTextIp.textContent = JSON.stringify(jobParameters, null, 2)
+    jobParametersTextIp.disabled = true;
+
 }
 
 function initJobDetailsPage(){
@@ -251,24 +245,13 @@ function initJobDetailsPage(){
 
 function toggleParamsTable() {
     var isChecked = document.getElementById("provideParamsCheckbox").checked;
-    var inputs = document.querySelectorAll("#jobRunParametersTableBody input");
-    inputs.forEach(input => {
-        input.disabled = !isChecked;
-    });
+    var textarea = document.getElementById("jobRunParametersInput");
+    textarea.disabled = !isChecked;
 }
 
-function readTableParameters() {
-    var table = document.getElementById("jobRunParametersTableBody");
-    var parameters = {};
-    for (let i = 0; i < table.rows.length; i++) {
-        var cells = table.rows[i].cells;
-        var key = cells[0].textContent.trim();
-        var value = cells[1].textContent.trim();
-        if (key) {
-            parameters[key] = value;
-        }
-    }
-    return parameters;
+function readJobRunParams() {
+    var params = document.getElementById("jobRunParametersInput").value;
+    return params;
 }
 
 
@@ -279,12 +262,13 @@ function runJob(){
         return;
     }
 
-    var jobParameters = readTableParameters();
+    var jobParameters = readJobRunParams();
     var url = getJobRunUrl()
     var requestData={
                     jobName: jobName,
-                    jobParameters:JSON.stringify(jobParameters)
+                    jobParameters:jobParameters
                     };
+    console.log("Request Data:", requestData);
     makeAPICall(url,'POST',requestData,function(response){
         $('#runJobModal').modal('hide');
         document.getElementById("messageModalBody").textContent = `Job '${jobName}' has been started successfully.`;
