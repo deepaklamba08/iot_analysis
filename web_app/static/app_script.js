@@ -301,6 +301,10 @@ function openSchedulerPage(){
     window.open(`/scheduler`, "_blank");
 }
 
+function openCreateAppPage(){
+    window.open(`/create_application`, "_blank");
+}
+
 function setJobCurrentStatus(responseData){
     if (responseData.status_code !== 200) {
         showMessageModal('No history available for this job. Please run the job to see the history.');
@@ -446,4 +450,72 @@ function startScheduler(){
 
 function stopScheduler(){
     schedulerAction('stop','Scheduler stopped successfully.');
+}
+
+function createApplication(){
+    var appName = document.getElementById('appNameLabel').value;
+    var appDesc = document.getElementById('appDescriptionLabel').value;
+    var appConfig = document.getElementById('appConfig').value;
+
+    showMessageModal('Application Created!!');
+}
+
+function discardCreateApplication(){
+
+
+    showMessageModal('Application Discarded!!');
+}
+
+function addSource(){
+    var srcName = document.getElementById('sourceNameField').value;
+    var srcDesc = document.getElementById('sourceDescriptionField').value;
+    var srcConfig = document.getElementById('sourceConfig').value;
+    var srcType = document.getElementById('sourceType').value;
+
+    var appElementsTable = document.getElementById('createAppElementsTable');
+    addRow([srcName,srcType,srcDesc],appElementsTable);
+
+    showMessageModal('Source Added!!');
+
+    document.getElementById('sourceNameField').value='';
+    document.getElementById('sourceDescriptionField').value='';
+    document.getElementById('sourceConfig').value='';
+
+    $('#addSourceModal').modal('hide');
+}
+
+function addTransformation(){
+    var trName = document.getElementById('transformationNameField').value;
+    var trDesc = document.getElementById('transformationDescriptionField').value;
+    var trConfig = document.getElementById('transformationConfig').value;
+    var trType = document.getElementById('transformationType').value;
+
+    var appElementsTable = document.getElementById('createAppElementsTable');
+    addRow([trName,trType,trDesc],appElementsTable);
+
+    showMessageModal('Transformation Added!!');
+
+    document.getElementById('transformationNameField').value='';
+    document.getElementById('transformationDescriptionField').value='';
+    document.getElementById('transformationConfig').value='';
+
+    $('#addTransformationModal').modal('hide');
+}
+
+function addAction(){
+    var actName = document.getElementById('actionNameField').value;
+    var actDesc = document.getElementById('actionDescriptionField').value;
+    var actConfig = document.getElementById('actionConfig').value;
+    var actType = document.getElementById('actionType').value;
+
+    var appElementsTable = document.getElementById('createAppElementsTable');
+    addRow([actName,actType,actDesc],appElementsTable);
+
+    showMessageModal('Action Added!!');
+
+    document.getElementById('actionNameField').value='';
+    document.getElementById('actionDescriptionField').value='';
+    document.getElementById('actionConfig').value='';
+
+    $('#addActionModal').modal('hide');
 }

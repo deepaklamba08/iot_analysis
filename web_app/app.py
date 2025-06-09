@@ -102,6 +102,11 @@ def create_app(arguments: list):
     def scheduler():
         return render_template('scheduler.html')
 
+    @app.route('/create_application')
+    @login_required
+    def create_application():
+        return render_template('create_app.html')
+
     @app.route('/status')
     @login_required
     def status():

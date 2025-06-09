@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="{{url_for('static', filename='app_script.js')}}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 10;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            padding: 30px;
+        }
+
+        .createAppDetailsLabel {
+            color: white;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .form-group span {
+            background-color: #e9ecef;
+        }
+
+        .detail-span {
+            display: inline-block;
+            width: 100%;
+            padding: 6px 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            min-height: 34px;
+        }
+
+        #createAppElementsTable th,
+        #createAppElementsTable td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #createAppElementsTable {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #createAppElementsTable th {
+            background-color: #337ab7;
+            color: white;
+        }
+
+        .centered-panel {
+            margin-top: 10px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .bottom-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+
+
+
+    </style>
+</head>
+
+<body onload="">
+
+<div class="panel panel-primary centered-panel">
+    <div class="panel-heading">
+        <label id="createAppDetailsLabel" class="createAppDetailsLabel">Create Application</label>
+    </div>
+
+    <div class="panel-body" id="createAppDetailsSection">
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Application Name:</strong></div>
+            <div class="col-sm-9"><input id="appNameField" class="detail-span"></input></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Description:</strong></div>
+            <div class="col-sm-9"><input id="appDescriptionField" class="detail-span"></input></div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Configuration:</strong></div>
+            <div class="col-sm-9">
+                <textarea id="appConfig" class="form-control" width="100%" rows="3" style="resize: none;"></textarea>
+            </div>
+        </div>
+
+        <hr>
+        <h4>Application Elements</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="createAppElementsTable">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody id="createAppElementsTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Button -->
+        <div class="bottom-button">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addSourceModal">Add Source
+            </button>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTransformationModal">Add
+                Transformation
+            </button>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addActionModal">Add Action
+            </button>
+        </div>
+
+        <div class="bottom-button">
+            <button type="button" class="btn btn-primary" onclick="createApplication()">Create</button>
+            <button type="button" class="btn btn-primary" onclick="discardCreateApplication()">Discard</button>
+            <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Source Modal -->
+<div id="addSourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSourceModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="addSourceModalLabel">Add Source</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Name:</strong></div>
+                    <div class="col-sm-9"><input id="sourceNameField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Description:</strong></div>
+                    <div class="col-sm-9"><input id="sourceDescriptionField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Type:</strong></div>
+                    <div class="col-sm-9">
+                        <select id="sourceType" class="form-control">
+                            <option>Source</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Configuration:</strong></div>
+                    <div class="col-sm-9">
+                        <textarea id="sourceConfig" class="form-control" width="100%" rows="3"
+                                  style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="addSource()">Add</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Add Transformation Modal -->
+<div id="addTransformationModal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="addTransformationModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="addTransformationModalLabel">Add Transformation</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Name:</strong></div>
+                    <div class="col-sm-9"><input id="transformationNameField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Description:</strong></div>
+                    <div class="col-sm-9"><input id="transformationDescriptionField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Type:</strong></div>
+                    <div class="col-sm-9">
+                        <select id="transformationType" class="form-control">
+                            <option>Transformation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Configuration:</strong></div>
+                    <div class="col-sm-9">
+                        <textarea id="transformationConfig" class="form-control" width="100%" rows="3"
+                                  style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="addTransformation()">Add</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Add Action Modal -->
+<div id="addActionModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addActionModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="addActionModalLabel">Add Action</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Name:</strong></div>
+                    <div class="col-sm-9"><input id="actionNameField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Description:</strong></div>
+                    <div class="col-sm-9"><input id="actionDescriptionField" class="detail-span"></input></div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Type:</strong></div>
+                    <div class="col-sm-9">
+                        <select id="actionType" class="form-control">
+                            <option>Action</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-sm-3"><strong>Configuration:</strong></div>
+                    <div class="col-sm-9">
+                        <textarea id="actionConfig" class="form-control" width="100%" rows="3"
+                                  style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="addAction()">Add</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Message Modal -->
+<div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="messageModalLabel">Info</h4>
+            </div>
+
+            <div class="modal-body">
+                <p id="messageModalBody">Your message goes here.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
