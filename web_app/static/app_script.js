@@ -453,8 +453,8 @@ function stopScheduler(){
 }
 
 function createApplication(){
-    var appName = document.getElementById('appNameLabel').value;
-    var appDesc = document.getElementById('appDescriptionLabel').value;
+    var appName = document.getElementById('appNameField').value;
+    var appDesc = document.getElementById('appDescriptionField').value;
     var appConfig = document.getElementById('appConfig').value;
 
     showMessageModal('Application Created!!');
@@ -473,7 +473,7 @@ function addSource(){
     var srcType = document.getElementById('sourceType').value;
 
     var appElementsTable = document.getElementById('createAppElementsTable');
-    addRow([srcName,srcType,srcDesc],appElementsTable);
+    addRow([srcName,"Source- "+srcType,srcDesc],appElementsTable);
 
     showMessageModal('Source Added!!');
 
@@ -491,7 +491,7 @@ function addTransformation(){
     var trType = document.getElementById('transformationType').value;
 
     var appElementsTable = document.getElementById('createAppElementsTable');
-    addRow([trName,trType,trDesc],appElementsTable);
+    addRow([trName,"Transformation- "+trType,trDesc],appElementsTable);
 
     showMessageModal('Transformation Added!!');
 
@@ -509,7 +509,7 @@ function addAction(){
     var actType = document.getElementById('actionType').value;
 
     var appElementsTable = document.getElementById('createAppElementsTable');
-    addRow([actName,actType,actDesc],appElementsTable);
+    addRow([actName,"Action- "+actType,actDesc],appElementsTable);
 
     showMessageModal('Action Added!!');
 
