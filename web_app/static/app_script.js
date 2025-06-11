@@ -29,6 +29,10 @@ function getJobSchedulerUrl(){
   return BASE_URL+"/executor";
 }
 
+function getConfigUrl(configName){
+  return BASE_URL+"/config/"+configName;
+}
+
 function failureCallback(error){
   console.error('API Call Error:', error);
 }
@@ -518,4 +522,36 @@ function addAction(){
     document.getElementById('actionConfig').value='';
 
     $('#addActionModal').modal('hide');
+}
+
+function initCreateAppPage(){
+    var url = getConfigUrl("element_config");
+    //set app elements
+    makeAPICall(url,'GET',null,setAppElements);
+}
+
+function setAppElements(responseData){
+    if (responseData.status_code !== 200) {
+        console.error('Failed to fetch application elements:', responseData.message);
+        return;
+    }
+    setElementValues('sourceType',responseData.data.sources);
+    setElementValues('transformationType',responseData.data.transformations);
+    setElementValues('actionType',responseData.data.actions);
+
+}
+
+function setElementValues(element,values){
+    var elementTypeSelect = document.getElementById(element);
+    elementTypeSelect.innerHTML = '';
+    if (Array.isArray(values)) {
+        values.forEach(value => {
+            var option = document.createElement('option');
+            option.value = value.name;
+            option.textContent = value.name;
+            elementTypeSelect.appendChild(option);
+        });
+    } else {
+        console.error("Invalid response format: 'data' is not an array.");
+    }
 }

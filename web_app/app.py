@@ -164,4 +164,9 @@ def create_app(arguments: list):
         else:
             return "Content type is not supported."
 
+    @app.route('/config/<element>/', methods=['GET'])
+    @login_required
+    def get_element_config(element: str):
+        return service.get_element_config(element=element)
+
     return app

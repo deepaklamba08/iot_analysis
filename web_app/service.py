@@ -173,6 +173,11 @@ class WebAppService:
             return APIResponse(status_code=400, message=f"Invalid action: {action}").to_response()
         return APIResponse(status_code=200, data={}).to_response()
 
+    def get_element_config(self, element: str):
+        self.logger.debug(f"executing : WebAppService.get_element_config(element: {element})")
+        config=self.application_store.get_config(name=element)
+        return APIResponse(status_code=200, data=config).to_response() if config else APIResponse(status_code=404).to_response()
+
     @staticmethod
     def __map_executor_info(executor_info):
         return {

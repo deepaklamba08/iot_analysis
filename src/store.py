@@ -16,8 +16,8 @@ class ApplicationStore:
         self.logger = get_logger()
 
         self.applications: dict = None
-        records = self.__load_all_records()
-        self.__load_applications(records=records)
+        self.records = self.__load_all_records()
+        self.__load_applications(records=self.records)
         self.logger.debug(f'number of applications - {len(self.applications)}')
 
     def lookup_application(self, application_id: str) -> Application:
@@ -27,6 +27,12 @@ class ApplicationStore:
 
     def load_all_applications(self) -> list:
         return self.applications.values()
+
+    def get_config(self, name: str):
+        raw_data_list = list(
+            filter(lambda record: record.get('type', 'config') == 'config' and record.get('name') == name,
+                   self.records))
+        return raw_data_list[0] if len(raw_data_list) > 0 else None
 
     def __load_all_records(self) -> list:
         if not self.config_file:
