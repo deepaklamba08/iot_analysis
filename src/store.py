@@ -34,6 +34,45 @@ class ApplicationStore:
                    self.records))
         return raw_data_list[0] if len(raw_data_list) > 0 else None
 
+    def create_application(self, app_config: dict, user: str):
+        self.logger.debug('executing : ApplicationStore.create_application()')
+        app_id = str(uuid.uuid1())
+        create_date = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+        app_config['id'] = app_id
+        app_config['create_date'] = create_date
+        app_config['created_by'] = user
+
+        ApplicationStore.__update_values(created_by=user, create_date=create_date,
+                                         elements=app_config.get('sources', []))
+        ApplicationStore.__update_values(created_by=user, create_date=create_date,
+                                         elements=app_config.get('transformations', []))
+        ApplicationStore.__update_values(created_by=user, create_date=create_date,
+                                         elements=app_config.get('actions', []))
+
+        app = Application(
+            object_id=app_id,
+            name=app_config['name'],
+            status=app_config['status'],
+            description=app_config.get('description', ''),
+            create_date=datetime.datetime.now().strftime(Constants.DATE_FORMAT),
+            created_by=user,
+            config=app_config.get('config', {}),
+            sources=list(map(lambda source_config: ApplicationStore.__parse_source(source_config),
+                             app_config['sources'])),
+            transformations=list(map(lambda tr_config: ApplicationStore.__parse_transformation(tr_config),
+                                     app_config.get('transformations', []))),
+            actions=list(map(lambda action_config: ApplicationStore.__parse_action(action_config),
+                             app_config['actions']))
+        )
+        return app_id
+
+    @staticmethod
+    def __update_values(created_by: str, create_date: str, elements: list):
+        for element in elements:
+            element['id'] = str(uuid.uuid1())
+            element['create_date'] = create_date
+            element['created_by'] = created_by
+
     def __load_all_records(self) -> list:
         if not self.config_file:
             raise Exception(f'config file is invalid - {self.config_file}')

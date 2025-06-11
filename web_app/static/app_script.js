@@ -37,6 +37,10 @@ function failureCallback(error){
   console.error('API Call Error:', error);
 }
 
+function getCreateAppUrl(){
+  return BASE_URL+"/app/create/";
+}
+
 function makeAPICall(endPoint, methodType, requestBody, successCallback, failureCallback) {
     var options = {
         method: methodType,
@@ -461,6 +465,62 @@ function createApplication(){
     var appDesc = document.getElementById('appDescriptionField').value;
     var appConfig = document.getElementById('appConfig').value;
 
+    var table = document.getElementById("createAppElementsTable");
+    var rows = table.getElementsByTagName("tr");
+    var appObj = {
+        name: appName,
+        description: appDesc,
+        status: true,
+        config: appConfig,
+    }
+    var sources=[]
+    var transformations=[]
+    var actions=[]
+
+    for (let i = 1; i < rows.length; i++) { // Skip header row
+      var cells = rows[i].getElementsByTagName("td");
+      var name = cells[0].innerText;
+      var type = cells[1].innerText;
+      var description = cells[2].innerText;
+
+      var object = {
+          name: name,
+          description: description,
+          status:true,
+          type: type.split('-')[1].trim(),
+          config:{}
+      }
+
+      if(type.startsWith('Source')) {
+        sources.push(object);
+      }else if(type.startsWith('Transformation')) {
+        transformations.push(object);
+      }else if(type.startsWith('Action')) {
+        actions.push(object);
+      }
+    }
+    if(sources.length== 0 || actions.length == 0) {
+       showMessageModal('Source and action must be provided.');
+       return;
+    }
+
+    if(sources.length != 0) {
+        appObj.sources = sources;
+    }
+    if(transformations.length != 0) {
+        appObj.transformations = transformations;
+    }
+    if(actions.length != 0) {
+        appObj.actions = actions;
+    }
+
+    var url = getCreateAppUrl();
+    makeAPICall(url,'POST',appObj,function(response){
+        $('#runJobModal').modal('hide');
+        document.getElementById("messageModalBody").textContent = `Application created.`;
+        $('#messageModal').modal('show');
+    },failureCallback)
+
     showMessageModal('Application Created!!');
 }
 
@@ -525,6 +585,9 @@ function addAction(){
 }
 
 function initCreateAppPage(){
+    document.getElementById('appNameField').value= '';
+    document.getElementById('appDescriptionField').value= '';
+    document.getElementById('appConfig').value= '';
     var url = getConfigUrl("element_config");
     //set app elements
     makeAPICall(url,'GET',null,setAppElements);

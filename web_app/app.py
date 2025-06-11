@@ -169,4 +169,16 @@ def create_app(arguments: list):
     def get_element_config(element: str):
         return service.get_element_config(element=element)
 
+    @app.route('/app/create/', methods=['POST'])
+    @login_required
+    def create_application_api():
+        content_type = request.headers.get('Content-Type')
+
+        if content_type == 'application/json':
+            request_data = json.loads(request.data.decode())
+            username = session.get('username')
+            return service.create_application(app_data=request_data,user=username)
+        else:
+            return "Content type is not supported."
+
     return app

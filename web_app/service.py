@@ -175,8 +175,20 @@ class WebAppService:
 
     def get_element_config(self, element: str):
         self.logger.debug(f"executing : WebAppService.get_element_config(element: {element})")
-        config=self.application_store.get_config(name=element)
-        return APIResponse(status_code=200, data=config).to_response() if config else APIResponse(status_code=404).to_response()
+        config = self.application_store.get_config(name=element)
+        return APIResponse(status_code=200, data=config).to_response() if config else APIResponse(
+            status_code=404).to_response()
+
+    def create_application(self, app_data: dict, user: str):
+        try:
+            self.application_store.create_application(app_config=app_data, user=user)
+            self.logger.info("Application created successfully")
+            return APIResponse(status_code=200, message="Application created successfully").to_response()
+        except Exception as ex:
+            print(app_data)
+            print(f"Error occurred while creating application: {ex}")
+            self.logger.error(f"Error occurred: {ex}")
+            return APIResponse(status_code=500, message="An unexpected error occurred").to_response()
 
     @staticmethod
     def __map_executor_info(executor_info):
