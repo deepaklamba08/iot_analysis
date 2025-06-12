@@ -41,6 +41,7 @@ class ApplicationStore:
         app_config['id'] = app_id
         app_config['create_date'] = create_date
         app_config['created_by'] = user
+        app_config['type'] = 'application'
 
         ApplicationStore.__update_values(created_by=user, create_date=create_date,
                                          elements=app_config.get('sources', []))
@@ -92,7 +93,7 @@ class ApplicationStore:
         config_files = [file for file in os.listdir(self.config_dir) if file.endswith('.json')]
         elements = []
         for config_file in config_files:
-            config_file_path = os.path.join(self.config_dir,config_file)
+            config_file_path = os.path.join(self.config_dir, config_file)
             elements.extend(ApplicationStore.__read_file(config_file=config_file_path, parameters=self.parameters))
         return elements
 
@@ -182,8 +183,8 @@ class JobStore:
         self.config_dir = config_dir
         self.logger = get_logger()
         self.jobs: dict = None
-        records = self.__load_all_records()
-        self.__load_jobs(records=records)
+        self.records = self.__load_all_records()
+        self.__load_jobs(records=self.records)
 
     @staticmethod
     def __read_file(config_file: str):
@@ -222,12 +223,33 @@ class JobStore:
             self.jobs[job.object_id] = job
 
     def lookup_job(self, job_id: str) -> Job:
-        self.logger.debug(f'executing : ApplicationStore.lookup_job(job_id : {job_id})')
-        self.logger.debug(f'exiting : ApplicationStore.lookup_job()')
+        self.logger.debug(f'executing : JobStore.lookup_job(job_id : {job_id})')
+        self.logger.debug(f'exiting : JobStore.lookup_job()')
         return self.jobs.get(job_id)
 
     def load_all_jobs(self) -> list:
         return self.jobs.values()
+
+    def __save_file(self, file_name, data):
+        file_path = os.path.join(self.config_dir, file_name)
+        with open(file_path, 'w') as stream:
+            stream.write(json.dumps(data, indent=0))
+
+    def create_job(self, job_data: dict, user: str):
+        self.logger.debug('executing : JobStore.create_job()')
+        job_id = str(uuid.uuid1())
+        create_date = datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+        job_data['id'] = job_id
+        job_data['create_date'] = create_date
+        job_data['created_by'] = user
+        job_data['type'] = 'job'
+        job = JobStore.__parse_job(job_data)
+
+        self.__save_file(file_name=f'job_{job_id}.json', data=[job_data])
+        self.records = self.__load_all_records()
+        self.__load_jobs(records=self.records)
+
+        return job_id
 
 
 class ExecutionDetail:

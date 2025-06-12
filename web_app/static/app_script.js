@@ -41,6 +41,19 @@ function getCreateAppUrl(){
   return BASE_URL+"/app/create/";
 }
 
+function getAppNamesUrl(){
+  return BASE_URL+"/app/names/";
+}
+
+function getApplicationDetailsUrl(appId){
+  return BASE_URL+"/app/"+appId+"/details";
+}
+
+function getCreateJobUrl(){
+  return BASE_URL+"/job/create/";
+}
+
+
 function makeAPICall(endPoint, methodType, requestBody, successCallback, failureCallback) {
     var options = {
         method: methodType,
@@ -313,6 +326,10 @@ function openCreateAppPage(){
     window.open(`/create_application`, "_blank");
 }
 
+function openCreateJobPage(){
+    window.open(`/create_job`, "_blank");
+}
+
 function setJobCurrentStatus(responseData){
     if (responseData.status_code !== 200) {
         showMessageModal('No history available for this job. Please run the job to see the history.');
@@ -471,7 +488,7 @@ function createApplication(){
         name: appName,
         description: appDesc,
         status: true,
-        config: appConfig,
+        config: JSON.parse(appConfig),
     }
     var sources=[]
     var transformations=[]
@@ -620,4 +637,71 @@ function setElementValues(element,values){
     } else {
         console.error("Invalid response format: 'data' is not an array.");
     }
+}
+
+function initCreateJobPage(){
+    var url = getAppNamesUrl()
+    var appNamesSelect = document.getElementById('applicationSelect');
+    makeAPICall(url,'GET',null,function(responseData){
+        if(responseData.status_code !== 200) {
+            showMessageModal('No applications available to create job.');
+            return;
+        }
+        appNamesSelect.innerHTML = '';
+        Object.entries(responseData.data).forEach(([appName, appId]) => {
+            var option = document.createElement('option');
+            option.value = appId;
+            option.textContent = appName;
+            appNamesSelect.appendChild(option);
+        });
+    },failureCallback);
+    appNamesSelect.addEventListener('change', function() {
+        handleApplicationSelectChange(this.value);
+    });
+    var appElementsTable = document.getElementById('appElementsTable')
+    clearTableContents(appElementsTable);
+}
+function handleApplicationSelectChange(selectedValue) {
+    makeAPICall(getApplicationDetailsUrl(selectedValue),'GET',null,function(responseData){
+        if(responseData.status_code !== 200) {
+            showMessageModal('Application details not available.');
+            return;
+        }
+        var appDetails = responseData.data;
+        document.getElementById('jobConfig').textContent = JSON.stringify(appDetails.config, null, 2);
+
+        var appElementsTable = document.getElementById('appElementsTable')
+        clearTableContents(appElementsTable);
+        appDetails.sources.forEach(source => {
+            addRow([source.name, source.type, source.description], appElementsTable);
+        });
+    });
+}
+
+function createJob(){
+    var jobName = document.getElementById('jobNameField').value;
+    var jobDesc = document.getElementById('jobDescriptionField').value;
+    var appId = document.getElementById('applicationSelect').value;
+    var jobConfig = document.getElementById('jobConfig').value;
+
+    if (jobName === '' || appId === '') {
+        showMessageModal('Job name and application must be provided.');
+        return;
+    }
+
+    var requestData = {
+        name: jobName,
+        description: jobDesc,
+        application_id: appId,
+        status:true,
+        config: JSON.parse(jobConfig)
+    };
+
+    makeAPICall(getCreateJobUrl(), 'POST', requestData, function(response) {
+        if (response.status_code === 200) {
+            showMessageModal(`Job '${jobName}' created successfully.`);
+        } else {
+            showMessageModal(`Error occurred while creating job.`);
+        }
+    }, failureCallback);
 }

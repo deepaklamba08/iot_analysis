@@ -81,7 +81,7 @@ class WebAppService:
     def application_details(self, job_name: str):
         self.logger.debug("executing : WebAppService.application_details()")
         job_details = self.__fetch_job_names()
-        self.logger.debug(f'job to run - {job_name}')
+        self.logger.debug(f'job name - {job_name}')
         if job_name not in job_details.keys():
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Application not found for job: {job_name}").to_response()
@@ -180,12 +180,37 @@ class WebAppService:
 
     def create_application(self, app_data: dict, user: str):
         try:
+
             self.application_store.create_application(app_config=app_data, user=user)
             self.logger.info("Application created successfully")
             return APIResponse(status_code=200, message="Application created successfully").to_response()
         except Exception as ex:
             self.logger.error(f"Error occurred: {ex}")
             return APIResponse(status_code=500, message="An unexpected error occurred").to_response()
+
+    def create_job(self, job_data: dict, user: str):
+        try:
+            self.job_store.create_job(job_data=job_data, user=user)
+            self.logger.info("Job created successfully")
+            return APIResponse(status_code=200, message="Job created successfully").to_response()
+        except Exception as ex:
+            self.logger.error(f"Error occurred: {ex}")
+            return APIResponse(status_code=500, message="An unexpected error occurred").to_response()
+
+    def get_app_names(self):
+        self.logger.debug(f"executing : WebAppService.logger()")
+        app_dict = {app.name: app.object_id for app in self.application_store.load_all_applications()}
+        return APIResponse(status_code=200, data=app_dict).to_response()
+
+    def get_application_details(self, app_id: str):
+        self.logger.debug(f"executing : WebAppService.get_application_details(app_id : {app_id})")
+        application = self.application_store.lookup_application(application_id=app_id)
+        self.logger.debug("exiting : WebAppService.application_details()")
+        if application:
+            return APIResponse(status_code=200,
+                               data=WebAppService.__map_application(application=application)).to_response()
+        else:
+            return APIResponse(status_code=204, message=f"Application not found : {app_id}").to_response()
 
     @staticmethod
     def __map_executor_info(executor_info):

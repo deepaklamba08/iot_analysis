@@ -107,6 +107,11 @@ def create_app(arguments: list):
     def create_application():
         return render_template('create_app.html')
 
+    @app.route('/create_job')
+    @login_required
+    def create_job():
+        return render_template('create_job.html')
+
     @app.route('/status')
     @login_required
     def status():
@@ -169,15 +174,35 @@ def create_app(arguments: list):
     def get_element_config(element: str):
         return service.get_element_config(element=element)
 
+    @app.route('/app/names/', methods=['GET'])
+    @login_required
+    def get_app_names():
+        return service.get_app_names()
+
+    @app.route('/app/<app_id>/details', methods=['GET'])
+    @login_required
+    def get_app_details(app_id: str):
+        return service.get_application_details(app_id=app_id)
+
     @app.route('/app/create/', methods=['POST'])
     @login_required
     def create_application_api():
         content_type = request.headers.get('Content-Type')
-
         if content_type == 'application/json':
             request_data = json.loads(request.data.decode())
             username = session.get('username')
             return service.create_application(app_data=request_data,user=username)
+        else:
+            return "Content type is not supported."
+
+    @app.route('/job/create/', methods=['POST'])
+    @login_required
+    def create_job_api():
+        content_type = request.headers.get('Content-Type')
+        if content_type == 'application/json':
+            request_data = json.loads(request.data.decode())
+            username = session.get('username')
+            return service.create_job(job_data=request_data,user=username)
         else:
             return "Content type is not supported."
 
