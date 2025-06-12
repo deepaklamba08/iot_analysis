@@ -693,6 +693,7 @@ function createJob(){
         name: jobName,
         description: jobDesc,
         application_id: appId,
+        application_name: document.getElementById('applicationSelect').selectedOptions[0].textContent,
         status:true,
         config: JSON.parse(jobConfig)
     };
