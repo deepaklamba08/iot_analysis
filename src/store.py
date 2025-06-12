@@ -10,8 +10,8 @@ from src.utils import get_logger, replace_placeholders, Constants
 
 class ApplicationStore:
 
-    def __init__(self, config_file: str, parameters: dict = {}):
-        self.config_file = config_file
+    def __init__(self, config_dir: str, parameters: dict = {}):
+        self.config_dir = config_dir
         self.parameters = parameters
         self.logger = get_logger()
 
@@ -64,7 +64,15 @@ class ApplicationStore:
             actions=list(map(lambda action_config: ApplicationStore.__parse_action(action_config),
                              app_config['actions']))
         )
+        self.__save_file(file_name=f'app_{app_id}.json', data=[app_config])
+        self.records = self.__load_all_records()
+        self.__load_applications(records=self.records)
         return app_id
+
+    def __save_file(self, file_name, data):
+        file_path = os.path.join(self.config_dir, file_name)
+        with open(file_path, 'w') as stream:
+            stream.write(json.dumps(data, indent=0))
 
     @staticmethod
     def __update_values(created_by: str, create_date: str, elements: list):
@@ -73,13 +81,20 @@ class ApplicationStore:
             element['create_date'] = create_date
             element['created_by'] = created_by
 
-    def __load_all_records(self) -> list:
-        if not self.config_file:
-            raise Exception(f'config file is invalid - {self.config_file}')
-        with open(self.config_file, 'r') as data_stream:
+    @staticmethod
+    def __read_file(config_file: str, parameters):
+        with open(config_file, 'r') as data_stream:
             config_str = replace_placeholders(raw_data='\n'.join(data_stream.readlines()),
-                                              parameters=self.parameters)
+                                              parameters=parameters)
             return json.loads(config_str)
+
+    def __load_all_records(self) -> list:
+        config_files = [file for file in os.listdir(self.config_dir) if file.endswith('.json')]
+        elements = []
+        for config_file in config_files:
+            config_file_path = os.path.join(self.config_dir,config_file)
+            elements.extend(ApplicationStore.__read_file(config_file=config_file_path, parameters=self.parameters))
+        return elements
 
     def __load_applications(self, records: list):
         self.logger.debug('loading all applications')
@@ -163,18 +178,25 @@ class ApplicationStore:
 
 class JobStore:
 
-    def __init__(self, config_file: str):
-        self.config_file = config_file
+    def __init__(self, config_dir: str):
+        self.config_dir = config_dir
         self.logger = get_logger()
         self.jobs: dict = None
         records = self.__load_all_records()
         self.__load_jobs(records=records)
 
-    def __load_all_records(self) -> list:
-        if not self.config_file:
-            raise Exception(f'config file is invalid - {self.config_file}')
-        with open(self.config_file, 'r') as data_stream:
+    @staticmethod
+    def __read_file(config_file: str):
+        with open(config_file, 'r') as data_stream:
             return json.loads('\n'.join(data_stream.readlines()))
+
+    def __load_all_records(self) -> list:
+        config_files = [file for file in os.listdir(self.config_dir) if file.endswith('.json')]
+        elements = []
+        for config_file in config_files:
+            config_file_path = os.path.join(self.config_dir, config_file)
+            elements.extend(JobStore.__read_file(config_file=config_file_path))
+        return elements
 
     @staticmethod
     def __parse_job(config: dict):

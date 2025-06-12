@@ -117,7 +117,6 @@ class WebAppService:
         if job_name not in job_details.keys():
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
-        print(job_parameters)
         self.job_exe_orch.schedule_job(
             job_id=job_details[job_name], submitter='UI',
             parameters=job_parameters
@@ -185,8 +184,6 @@ class WebAppService:
             self.logger.info("Application created successfully")
             return APIResponse(status_code=200, message="Application created successfully").to_response()
         except Exception as ex:
-            print(app_data)
-            print(f"Error occurred while creating application: {ex}")
             self.logger.error(f"Error occurred: {ex}")
             return APIResponse(status_code=500, message="An unexpected error occurred").to_response()
 

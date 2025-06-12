@@ -516,8 +516,11 @@ function createApplication(){
 
     var url = getCreateAppUrl();
     makeAPICall(url,'POST',appObj,function(response){
-        $('#runJobModal').modal('hide');
-        document.getElementById("messageModalBody").textContent = `Application created.`;
+        if(response.status_code === 200) {
+            document.getElementById("messageModalBody").textContent = `Application created.`;
+        }else{
+            document.getElementById("messageModalBody").textContent = `Error occurred while creating application.`;
+        }
         $('#messageModal').modal('show');
     },failureCallback)
 
