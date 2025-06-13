@@ -1,11 +1,11 @@
 app:
-  app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/iot_analysis.json
+  app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/app/
   execution_summary:
     type: file-v2
     execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/home/data/exe_history
   user_repo:
     type: file
-    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/users.json
+    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/usr/users.json
   sch_repo:
     type: file
-    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/sch.json
+    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/scheduler/sch.json
