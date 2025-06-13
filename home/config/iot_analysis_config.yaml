@@ -1,5 +1,5 @@
 app:
-  app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/app/
+  app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/app/
   execution_summary:
     type: file-v2
     execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/home/data/exe_history
