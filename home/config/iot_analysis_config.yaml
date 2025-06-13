@@ -5,7 +5,7 @@ app:
     execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/home/data/exe_history
   user_repo:
     type: file
-    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/usr/users.json
+    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/usr/users.json
   sch_repo:
     type: file
-    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/config/scheduler/sch.json
+    data_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/scheduler/sch.json
