@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:5000"
+const BASE_URL = "http://0.0.0.0:5000"
 const GET_ALL_JOBS_URL = BASE_URL+"/jobs/all"
 
 function getAppDetailsUrl(jobName){
