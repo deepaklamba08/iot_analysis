@@ -676,13 +676,13 @@ function handleApplicationSelectChange(selectedValue) {
         var appElementsTable = document.getElementById('appElementsTable')
         clearTableContents(appElementsTable);
         appDetails.sources.forEach(source => {
-            addRow([source.name, source.type, source.description], appElementsTable);
+            addRow([source.name, "Source- "+source.type, source.description], appElementsTable);
         });
         appDetails.transformations.forEach(transformation => {
-            addRow([transformation.name, transformation.type, transformation.description], appElementsTable);
+            addRow([transformation.name, "Transformation- "+transformation.type, transformation.description], appElementsTable);
         });
         appDetails.actions.forEach(action => {
-            addRow([action.name, action.type, action.description], appElementsTable);
+            addRow([action.name, action.type, "Action- "+action.description], appElementsTable);
         });
     });
 }
