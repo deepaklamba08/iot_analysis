@@ -1,5 +1,8 @@
-const BASE_URL = "http://0.0.0.0:5000"
-const GET_ALL_JOBS_URL = BASE_URL+"/jobs/all"
+const BASE_URL = ""
+
+function getAllJobsUrl(jobName){
+  return BASE_URL+"/jobs/all"
+}
 
 function getAppDetailsUrl(jobName){
   return BASE_URL+"/jobs/"+jobName+'/app/details'
@@ -86,7 +89,7 @@ function makeAPICall(endPoint, methodType, requestBody, successCallback, failure
 }
 
 function populateJobNames(){
-    makeAPICall(GET_ALL_JOBS_URL,'GET',null,function(responseData){
+    makeAPICall(getAllJobsUrl(),'GET',null,function(responseData){
         const jobNamesSelect = document.getElementById('jobNames');
         jobNamesSelect.innerHTML = '';
         if (Array.isArray(responseData.data)) {
@@ -674,6 +677,12 @@ function handleApplicationSelectChange(selectedValue) {
         clearTableContents(appElementsTable);
         appDetails.sources.forEach(source => {
             addRow([source.name, source.type, source.description], appElementsTable);
+        });
+        appDetails.transformations.forEach(transformation => {
+            addRow([transformation.name, transformation.type, transformation.description], appElementsTable);
+        });
+        appDetails.actions.forEach(action => {
+            addRow([action.name, action.type, action.description], appElementsTable);
         });
     });
 }
