@@ -16,6 +16,7 @@ class ApplicationStore:
         self.logger = get_logger()
 
         self.applications: dict = None
+        self.logger.debug(f'initializing ApplicationStore with config_dir - {self.config_dir}')
         self.records = self.__load_all_records()
         self.__load_applications(records=self.records)
         self.logger.debug(f'number of applications - {len(self.applications)}')
