@@ -261,7 +261,7 @@ class Orchestrator:
                                   context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug(f'executing : Orchestrator.run_application()')
         self.execution_store.update_summary(execution_id=execution_id,
-                                            **{'status': 'executing',
+                                            **{'status': 'Executing',
                                                'message': 'app is running',
                                                'end_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT)
                                                })
@@ -281,7 +281,7 @@ class Orchestrator:
 
         execution_id = self.execution_store.create_summary(job_id=context.get_value("job_id", context.app_id()),
                                                            app_id=context.app_id(),
-                                                           status='executing',
+                                                           status='Executing',
                                                            message='app is running',
                                                            run_by=context.get_value('submitter', '-'),
                                                            run_type=context.get_value('run_type', '-'),
