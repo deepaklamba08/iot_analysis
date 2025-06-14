@@ -484,15 +484,24 @@ function createApplication(){
     var appName = document.getElementById('appNameField').value;
     var appDesc = document.getElementById('appDescriptionField').value;
     var appConfig = document.getElementById('appConfig').value;
+    if (!appName.trim() || !appDesc.trim()) {
+        showMessageModal('Application name and description cannot be empty.');
+        return;
+    }
 
     var table = document.getElementById("createAppElementsTable");
     var rows = table.getElementsByTagName("tr");
     var appObj = {
         name: appName,
         description: appDesc,
-        status: true,
-        config: JSON.parse(appConfig),
+        status: true
     }
+    if (!appConfig.trim()) {
+        appObj.config = JSON.parse(appConfig)
+    }else{
+        appObj.config = {};
+    }
+
     var sources=[]
     var transformations=[]
     var actions=[]
