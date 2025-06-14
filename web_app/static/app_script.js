@@ -491,6 +491,11 @@ function createApplication(){
 
     var table = document.getElementById("createAppElementsTable");
     var rows = table.getElementsByTagName("tr");
+    if(rows.length===0){
+        showMessageModal('Source and action must be provided.');
+        return;
+    }
+
     var appObj = {
         name: appName,
         description: appDesc,
