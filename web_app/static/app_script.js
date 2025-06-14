@@ -497,9 +497,9 @@ function createApplication(){
         status: true
     }
     if (!appConfig.trim()) {
-        appObj.config = JSON.parse(appConfig)
-    }else{
         appObj.config = {};
+    }else{
+        appObj.config = JSON.parse(appConfig)
     }
 
     var sources=[]
