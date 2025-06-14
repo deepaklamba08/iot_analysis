@@ -260,7 +260,11 @@ class Orchestrator:
                                   application: Application,
                                   context: RuntimeContext) -> AppExecutionResult:
         self.logger.debug(f'executing : Orchestrator.run_application()')
-
+        self.execution_store.update_summary(execution_id=execution_id,
+                                            **{'status': 'executing',
+                                               'message': 'app is running',
+                                               'end_time': datetime.datetime.now().strftime(Constants.DATE_FORMAT)
+                                               })
         result = self.__run_job(execution_id=execution_id,
                                 application=application,
                                 runtime_context=context)
