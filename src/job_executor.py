@@ -111,7 +111,6 @@ class JobExecutorOrchestrator:
             self.sch_repo.make_action(action='start')
         else:
             raise Exception(f'Invalid status - {curr_status}')
-        pass
 
     def stop(self):
         self.logger.debug('executing : JobExecutorOrchestrator.stop()')
