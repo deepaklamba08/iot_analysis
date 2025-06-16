@@ -7,6 +7,7 @@ from src.models import RuntimeContext, Application, Source, Transformation, Acti
 from src.store import ApplicationStore, ExecutionStore, JobStore
 from src.utils import get_logger
 from src.utils import load_module, Constants
+import traceback
 
 
 class ProcessResult:
@@ -27,7 +28,8 @@ class Processor(ABC):
         try:
             return self.process()
         except Exception as ex:
-            return ProcessResult(False, f'error occurred while executing processor, cause - {ex}')
+            return ProcessResult(False,
+                                 f'error occurred while executing processor, cause - {ex}, stack trace - {traceback.format_exc()}')
 
 
 class SourceProcessor(Processor):
