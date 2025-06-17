@@ -5,12 +5,12 @@ from abc import abstractmethod
 from datetime import datetime
 
 from src.models import DataBag, ActionTemplate, DatabagLookup
-from src.utils import get_logger
+from src.utils import get_logger, replace_placeholders
 
 
 class LogDataAction(ActionTemplate):
 
-    def __init__(self, databag_lookup : DatabagLookup):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
@@ -51,7 +51,7 @@ class LogDataAction(ActionTemplate):
 
 class DataSinkBaseAction(ActionTemplate):
 
-    def __init__(self, databag_lookup : DatabagLookup):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
@@ -104,7 +104,7 @@ class DataSinkBaseAction(ActionTemplate):
 
 class JsonSinkAction(DataSinkBaseAction):
 
-    def __init__(self, databag_lookup : DatabagLookup):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
@@ -122,7 +122,7 @@ class JsonSinkAction(DataSinkBaseAction):
 
 class CSVSinkAction(DataSinkBaseAction):
 
-    def __init__(self, databag_lookup : DatabagLookup):
+    def __init__(self, databag_lookup: DatabagLookup):
         self.logger = get_logger()
         self.databag_lookup = databag_lookup
 
@@ -138,3 +138,32 @@ class CSVSinkAction(DataSinkBaseAction):
             writer.writerows(databag.data)
 
         self.logger.debug('executing : CSVSinkAction.sink()')
+
+
+class ShellAction(ActionTemplate):
+
+    def __init__(self, databag_lookup: DatabagLookup):
+        self.logger = get_logger()
+        self.databag_lookup = databag_lookup
+
+    def call(self, **kwargs):
+        self.logger.debug('executing : ShellAction.call()')
+
+        runtime_context = kwargs['runtime_context']
+
+        cmd_src = kwargs.get('cmd_src', 'inline')
+        if cmd_src == 'inline':
+            shell_cmd = kwargs.get('cmd')
+        elif cmd_src == 'file':
+            shell_cmd = ShellAction.__read_file(file_path=kwargs.get('cmd_file'),
+                                                parameters=runtime_context.parameters)
+        self.logger.debug('executing shell command ...')
+
+        self.logger.debug('shell command executed ...')
+        self.logger.debug('exiting : ShellAction.call()')
+
+    @staticmethod
+    def __read_file(file_path: str, parameters: dict) -> str:
+        with open(file_path, 'r') as stream:
+            cmd_str = '\n'.join(stream.readlines())
+            return replace_placeholders(raw_data=cmd_str, parameters=parameters)
