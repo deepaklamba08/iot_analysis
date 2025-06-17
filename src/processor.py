@@ -252,7 +252,7 @@ class Orchestrator:
 
         execution_id = self.execution_store.create_summary(job_id=job.object_id,
                                                            app_id=job.application_id,
-                                                           status='scheduled',
+                                                           status='Scheduled',
                                                            message='app is scheduled',
                                                            run_by=submitter,
                                                            run_type=run_type,

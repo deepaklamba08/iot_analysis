@@ -39,7 +39,7 @@ class JobExecutor:
             self.logger.debug(f"Scheduler is not running. Current status: {sch_data.current_state}")
             return
 
-        jobs_to_run = self.execution_store.get_job_history_by_status(statuses=['scheduled'])
+        jobs_to_run = self.execution_store.get_job_history_by_status(statuses=['Scheduled'])
 
         self.logger.debug(f'no of scheduled jobs - {len(jobs_to_run)}')
         if len(jobs_to_run) > 0:
