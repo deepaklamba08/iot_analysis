@@ -157,9 +157,10 @@ class ShellAction(ActionTemplate):
         elif cmd_src == 'file':
             shell_cmd = ShellAction.__read_file(file_path=kwargs.get('cmd_file'),
                                                 parameters=runtime_context.parameters)
+        import subprocess
         self.logger.debug('executing shell command ...')
-
-        self.logger.debug('shell command executed ...')
+        result = subprocess.run(shell_cmd, shell=True, capture_output=True, text=True)
+        self.logger.debug(f'shell command executed with outcome - {result}')
         self.logger.debug('exiting : ShellAction.call()')
 
     @staticmethod
