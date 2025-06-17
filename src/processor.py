@@ -108,6 +108,7 @@ class TransformationProcessor(Processor):
         transformation_provider = load_module(module_name=provider, databag_lookup=self.databag_registry.get_lookup())
         if isinstance(transformation_provider, TransformationTemplate):
             tr_config = copy.copy(transformation.config)
+            tr_config['runtime_context'] = self.runtime_context
             return transformation_provider.execute(**tr_config)
         else:
             raise Exception(f'invalid provider - {provider}, expected a provider of type SourceTemplate')
@@ -154,6 +155,7 @@ class ActionProcessor(Processor):
         action_provider = load_module(module_name=provider, databag_lookup=self.databag_registry.get_lookup())
         if isinstance(action_provider, ActionTemplate):
             action_config = copy.copy(action.config)
+            action_config['runtime_context'] = self.runtime_context
             action_provider.call(**action_config)
         else:
             raise Exception(f'invalid provider - {provider}, expected a provider of type SourceTemplate')
