@@ -136,7 +136,8 @@ class ActionProcessor(Processor):
                                  'telegram_message': 'src.extension.TelegramMessageAction',
                                  'email_notification': 'src.extension.EmailNotificationAction',
                                  'json_sink': 'src.actions.JsonSinkAction',
-                                 'csv_sink': 'src.actions.CSVSinkAction'}
+                                 'csv_sink': 'src.actions.CSVSinkAction',
+                                 'shell_cmd': 'src.actions.ShellAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
