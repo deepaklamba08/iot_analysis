@@ -5,7 +5,19 @@ from abc import abstractmethod
 from datetime import datetime
 
 from src.models import DataBag, ActionTemplate, DatabagLookup
-from src.utils import get_logger, replace_placeholders
+from src.utils import get_logger, replace_placeholders, replace_variables
+
+
+def select_databag(parameters: dict, databag_lookup: DatabagLookup) -> DataBag:
+    source_type = parameters.get('source_type')
+    source_name = parameters.get('source_name')
+
+    if source_type == 'source':
+        return databag_lookup.get_databag(name=source_name, is_source=True)
+    elif source_type == 'transformation':
+        return databag_lookup.get_databag(name=source_name, is_source=False)
+    else:
+        raise Exception(f'invalid source_type - {source_type}')
 
 
 class LogDataAction(ActionTemplate):
@@ -70,15 +82,7 @@ class DataSinkBaseAction(ActionTemplate):
 
     def call(self, **kwargs):
         self.logger.debug('executing : DataSinkBaseAction.call()')
-        source_type = kwargs.get('source_type')
-        source_name = kwargs.get('source_name')
-
-        if source_type == 'source':
-            databag = self.databag_lookup.get_databag(name=source_name, is_source=True)
-        elif source_type == 'transformation':
-            databag = self.databag_lookup.get_databag(name=source_name, is_source=False)
-        else:
-            raise Exception(f'invalid source_type - {source_type}')
+        databag = select_databag(kwargs, self.databag_lookup)
         write_mode = kwargs.get('save_mode', 'overwrite')
         self.logger.info(f'write mode is ser to - {write_mode}')
         file_dir = kwargs['file_dir']
@@ -157,9 +161,19 @@ class ShellAction(ActionTemplate):
         elif cmd_src == 'file':
             shell_cmd = ShellAction.__read_file(file_path=kwargs.get('cmd_file'),
                                                 parameters=runtime_context.parameters)
+
+        databag = select_databag(kwargs, self.databag_lookup)
+        for record in databag.data:
+            self.__execute_shell_cmd(shell_cmd, runtime_context.parameters, record)
+
+        self.logger.debug('exiting : ShellAction.call()')
+
+    def __execute_shell_cmd(self, shell_cmd: str, rc_context: dict, record: dict):
+        updated_cmd = replace_variables(text=shell_cmd, context=rc_context, record_data=record)
+        self.logger.debug(f'shell command to be executed - {updated_cmd}')
         import subprocess
         self.logger.debug('executing shell command ...')
-        result = subprocess.run(shell_cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(updated_cmd, shell=True, capture_output=True, text=True)
         self.logger.debug(f'shell command executed with outcome - {result}')
         self.logger.debug('exiting : ShellAction.call()')
 

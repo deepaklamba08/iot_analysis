@@ -5,7 +5,7 @@ import uuid
 from abc import ABC, abstractmethod
 
 from src.models import Application, Source, Transformation, Action, Job, User, SchedulerData
-from src.utils import get_logger, replace_placeholders, Constants
+from src.utils import get_logger, replace_placeholders, Constants, replace_variables
 
 
 class ApplicationStore:
@@ -88,6 +88,8 @@ class ApplicationStore:
         with open(config_file, 'r') as data_stream:
             config_str = replace_placeholders(raw_data='\n'.join(data_stream.readlines()),
                                               parameters=parameters)
+
+            config_str = replace_variables(text=config_str,conf=True,record=False,context=parameters)
             return json.loads(config_str)
 
     def __load_all_records(self) -> list:
