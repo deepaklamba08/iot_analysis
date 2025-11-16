@@ -270,7 +270,8 @@ class WebAppService:
                 "created_by": (job.created_by, "-")[job.created_by is None],
                 "updated_by": (job.updated_by, "-")[job.updated_by is None],
                 "job_parameters": job.job_parameters(),
-                "is_scheduled": "Yes" if job.is_scheduled() else "No"
+                "is_scheduled": "Yes" if job.is_scheduled() else "No",
+                "scheduler_expression": job.scheduler_expression() if job.scheduler_expression() else '-'
                 }
 
     @staticmethod

@@ -248,6 +248,7 @@ function setJobDetails(responseData){
     document.getElementById('jobLastModifiedLabel').textContent = jobDetails.update_date;
     document.getElementById('jobOwnerLabel').textContent = jobDetails.created_by;
     document.getElementById('jobScheduledLabel').textContent = jobDetails.is_scheduled;
+    document.getElementById('jobScheduleExpressionLabel').textContent = jobDetails.scheduler_expression;
 
     var jobParameters = jobDetails.job_parameters;
     var jobParametersTextIp = document.getElementById("jobRunParametersInput");
