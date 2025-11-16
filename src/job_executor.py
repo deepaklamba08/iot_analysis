@@ -51,12 +51,28 @@ class JobExecutor:
                 if not application:
                     self.logger.error(f'application not found by id - {scheduled_job.app_id}')
 
-                result = Orchestrator(application_store=application_store,
-                                      execution_store=self.execution_store,
-                                      job_store=self.job_store).run_scheduled_application(
-                    execution_id=scheduled_job.execution_id,
-                    application=application,
-                    context=runtime_context)
+                job_data = self.job_store.lookup_job(job_id=scheduled_job.job_id)
+                failure_retry = job_data.get_config_value(key='failure_retry', default='0')
+                failure_retry = int(failure_retry)
+                retry_interval = job_data.get_config_value(key='failure_retry_interval', default='0')
+                retry_interval = int(retry_interval)
+
+                attempt = 0
+                while attempt <= failure_retry:
+                    result = Orchestrator(application_store=application_store,
+                                          execution_store=self.execution_store,
+                                          job_store=self.job_store).run_scheduled_application(
+                        execution_id=scheduled_job.execution_id,
+                        application=application,
+                        context=runtime_context)
+                    if result.status:
+                        break
+                    attempt = attempt + 1
+                    if retry_interval > 0:
+                        self.logger.debug(f'waiting for {retry_interval} seconds before retrying...')
+                        import time
+                        time.sleep(retry_interval)
+
                 self.logger.debug(f'App execution id - {result.execution_id}, status - {result.status}')
         else:
             self.logger.debug(f'no jobs to run')

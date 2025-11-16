@@ -22,6 +22,9 @@ class Entity(ABC):
         self.description = description
         self.config = config
 
+    def get_config_value(self, key: str, default=None):
+        return self.config.get(key, default)
+
 
 class Source(Entity):
     def __init__(self,
