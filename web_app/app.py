@@ -156,16 +156,21 @@ def create_app(arguments: list):
 
     @app.route('/executor/info', methods=['GET'])
     @login_required
-    def executor_info():
-        return service.executor_info()
+    def executor_list():
+        return service.executor_list()
 
-    @app.route('/executor', methods=['PUT'])
+    @app.route('/executor/info/<sch_name>/', methods=['GET'])
     @login_required
-    def executor_action():
+    def executor_info(sch_name: str):
+        return service.executor_info(sch_name=sch_name)
+
+    @app.route('/executor/<sch_name>/', methods=['PUT'])
+    @login_required
+    def executor_action(sch_name: str):
         content_type = request.headers.get('Content-Type')
         if content_type == 'application/json':
             request_data = json.loads(request.data.decode())
-            return service.executor_action(action=request_data['action'])
+            return service.executor_action(sch_name=sch_name, action=request_data['action'])
         else:
             return "Content type is not supported."
 
@@ -191,7 +196,7 @@ def create_app(arguments: list):
         if content_type == 'application/json':
             request_data = json.loads(request.data.decode())
             username = session.get('username')
-            return service.create_application(app_data=request_data,user=username)
+            return service.create_application(app_data=request_data, user=username)
         else:
             return "Content type is not supported."
 
@@ -202,7 +207,7 @@ def create_app(arguments: list):
         if content_type == 'application/json':
             request_data = json.loads(request.data.decode())
             username = session.get('username')
-            return service.create_job(job_data=request_data,user=username)
+            return service.create_job(job_data=request_data, user=username)
         else:
             return "Content type is not supported."
 

@@ -13,15 +13,29 @@
     <style>
         html, body {
             height: 100%;
-            margin: 10;
+            margin: 0;
         }
 
         body {
             display: flex;
-            align-items: center;
-            justify-content: center;
             background-color: #f9f9f9;
-            padding: 30px;
+            padding: 20px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            width: 250px;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-right: 8px;
+            height: fit-content;
+        }
+
+        .centered-panel {
+            margin: 0 auto;
+            max-width: 900px;
+            width: 100%;
         }
 
         .schedulerDetailsLabel {
@@ -60,22 +74,25 @@
             color: white;
         }
 
-        .centered-panel {
-            margin: 0 auto;
-            max-width: 900px;
-            width: 100%;
-        }
-
         .bottom-button {
             margin-top: 20px;
             text-align: center;
         }
-
     </style>
 </head>
 
 <body onload="initSchedulerPage()">
 
+<!-- LEFT PANEL -->
+<div class="left-panel">
+    <label><strong>Select Scheduler</strong></label>
+    <select class="form-control" id="schedulerSelectDropdown">
+    </select>
+
+    <button class="btn btn-primary btn-block" style="margin-top: 15px;">Get Details</button>
+</div>
+
+<!-- MAIN PANEL -->
 <div class="panel panel-primary centered-panel">
     <div class="panel-heading">
         <label id="schedulerDetailsLabel" class="schedulerDetailsLabel">Scheduler Details</label>
@@ -93,7 +110,6 @@
             <div class="col-sm-9"><span id="schedulerDescriptionLabel" class="detail-span"></span></div>
         </div>
 
-
         <div class="row form-group">
             <div class="col-sm-3"><strong>Host:</strong></div>
             <div class="col-sm-9"><span id="schedulerHostLabel" class="detail-span"></span></div>
@@ -103,7 +119,6 @@
             <div class="col-sm-3"><strong>Status:</strong></div>
             <div class="col-sm-9"><span id="schedulerStatusLabel" class="detail-span"></span></div>
         </div>
-
 
         <div class="row form-group">
             <div class="col-sm-3"><strong>State:</strong></div>
@@ -131,27 +146,23 @@
                     <th>Value</th>
                 </tr>
                 </thead>
-                <tbody id="schedulerConfigurationTableBody">
-                </tbody>
+                <tbody id="schedulerConfigurationTableBody"></tbody>
             </table>
         </div>
 
-        <!-- Bottom Button -->
         <div class="bottom-button">
-            <button type="button" id = "startSchedulerButton" class="btn btn-primary" onclick="startScheduler()">Start</button>
-            <button type="button" id = "stopSchedulerButton" class="btn btn-primary" onclick="stopScheduler()">Stop</button>
+            <button type="button" id="startSchedulerButton" class="btn btn-primary" onclick="startScheduler()">Start</button>
+            <button type="button" id="stopSchedulerButton" class="btn btn-primary" onclick="stopScheduler()">Stop</button>
             <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
         </div>
 
     </div>
 </div>
 
-
 <!-- Message Modal -->
 <div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-
       <div class="modal-header">
         <h4 class="modal-title" id="messageModalLabel">Info</h4>
       </div>
@@ -163,7 +174,6 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
       </div>
-
     </div>
   </div>
 </div>

@@ -50,9 +50,9 @@ class WebAppService:
         self.application_store = ApplicationStore(self.analysis_app_config['app_config_file'])
         self.job_store = JobStore(self.analysis_app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.analysis_app_config)
-
+        self.sch_repo = SchedulerRepoProvider.create_scheduler_repo(self.analysis_app_config)
         self.job_exe_orch = JobExecutorOrchestrator(
-            sch_repo=SchedulerRepoProvider.create_scheduler_repo(self.analysis_app_config),
+            sch_repo=self.sch_repo,
             executor=JobExecutor(config.analysis_app_config())
         )
         self.user_repo = UserRepoProvider.create_user_repo(self.analysis_app_config)
@@ -153,24 +153,46 @@ class WebAppService:
             User(user_login=login, password=password, first_name=first_name, last_name=last_name,
                  create_date=None, status=True))
 
-    def executor_info(self):
+    def executor_list(self):
+        self.logger.debug("executing : WebAppService.executor_list()")
+        executors = self.sch_repo.list_all()
+        executors = list(
+            map(lambda element: WebAppService.__map_executor_info(element), executors))
+        if executors:
+            return APIResponse(status_code=200, data=executors).to_response()
+        else:
+            return APIResponse(status_code=204, message="Executor info not found").to_response()
+
+    def executor_info(self, sch_name: str):
         self.logger.debug("executing : WebAppService.executor_info()")
-        executor_info = self.job_exe_orch.get_executor_info()
+        executor_info = self.sch_repo.lookup(sch_name=sch_name)
         if executor_info:
             return APIResponse(status_code=200, data=WebAppService.__map_executor_info(executor_info)).to_response()
         else:
             return APIResponse(status_code=204, message="Executor info not found").to_response()
 
-    def executor_action(self, action: str):
+    def executor_action(self, sch_name: str, action: str):
         self.logger.debug("executing : WebAppService.executor_action()")
-        if action == 'start':
-            self.job_exe_orch.start()
-        elif action == 'stop':
-            self.job_exe_orch.stop()
+        executor_info = self.sch_repo.lookup(sch_name=sch_name)
+        if not executor_info:
+            return APIResponse(status_code=204, message="Executor info not found").to_response()
+
+        curr_status = executor_info.current_state
+        if curr_status == 'running' and action == 'start':
+            self.logger.debug('Job executor is already running')
+            return APIResponse(status_code=200, message="Job executor is already running").to_response()
+        elif curr_status == 'running' and action == 'stop':
+            self.logger.debug('Job executor is running, stopping now')
+            return APIResponse(status_code=200, message="Job executor is running, stopping now").to_response()
+        elif curr_status == 'stopped' and action == 'start':
+            self.logger.debug('Starting job executor now')
+            return APIResponse(status_code=200, message="Starting job executor now").to_response()
+        elif curr_status == 'stopped' and action == 'stop':
+            self.logger.debug('Job executor is already stopped')
+            return APIResponse(status_code=200, message="Job executor is already stopped").to_response()
         else:
-            self.logger.error(f'Invalid action - {action}')
-            return APIResponse(status_code=400, message=f"Invalid action: {action}").to_response()
-        return APIResponse(status_code=200, data={}).to_response()
+            return APIResponse(status_code=400, message="Job executor status is invalid").to_response()
+
 
     def get_element_config(self, element: str):
         self.logger.debug(f"executing : WebAppService.get_element_config(element: {element})")
@@ -216,6 +238,7 @@ class WebAppService:
     def __map_executor_info(executor_info):
         return {
             "name": executor_info.name,
+            "object_id": executor_info.object_id,
             "status": WebAppService.__map_status(executor_info.status),
             "create_date": (executor_info.create_date, "-")[executor_info.create_date is None],
             "created_by": (executor_info.created_by, "-")[executor_info.created_by is None],
@@ -272,7 +295,8 @@ class WebAppService:
                 "updated_by": (job.updated_by, "-")[job.updated_by is None],
                 "job_parameters": job.job_parameters(),
                 "is_scheduled": "Yes" if job.is_scheduled() else "No",
-                "scheduler_expression": job.scheduler_expression() if job.scheduler_expression() else '-'
+                "scheduler_expression": job.scheduler_expression() if job.scheduler_expression() else '-',
+                "scheduler_name": job.scheduler_name
                 }
 
     @staticmethod

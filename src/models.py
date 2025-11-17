@@ -247,6 +247,7 @@ class Job(Entity):
     def __init__(self, object_id: str, name: str, status: bool,
                  application_id: str,
                  application_name: str,
+                 scheduler_name: str,
                  create_date: str = None,
                  update_date: str = None,
                  created_by: str = None,
@@ -258,6 +259,7 @@ class Job(Entity):
         self.status = status
         self.application_id = application_id
         self.application_name = application_name
+        self.scheduler_name = scheduler_name
         self.create_date = create_date
         self.update_date = update_date
         self.created_by = created_by

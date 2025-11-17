@@ -11,70 +11,14 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <style>
-        html, body {
-            height: 100%;
-            margin: 10;
-        }
-
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f9f9f9;
-            padding: 30px;
-        }
-
-        .createJobDetailsLabel {
-            color: white;
-            font-weight: 400;
-            text-align: center;
-        }
-
-        .form-group span {
-            background-color: #e9ecef;
-        }
-
-        .detail-span {
-            display: inline-block;
-            width: 100%;
-            padding: 6px 10px;
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            min-height: 34px;
-        }
-
-        #appElementsTable th,
-        #appElementsTable td {
-            border: 1px solid #999;
-            padding: 8px;
-            text-align: left;
-        }
-
-        #appElementsTable {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        #appElementsTable th {
-            background-color: #337ab7;
-            color: white;
-        }
-
-        .centered-panel {
-            margin-top: 10px;
-            max-width: 900px;
-            width: 100%;
-        }
-
-        .bottom-button {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-
-
-
-
+        html, body { height: 100%; margin: 10; }
+        body { display: flex; align-items: center; justify-content: center; background-color: #f9f9f9; padding: 30px; }
+        .createJobDetailsLabel { color: white; font-weight: 400; text-align: center; }
+        .detail-span { display: inline-block; width: 100%; padding: 6px 10px; background-color: #f1f1f1; border-radius: 4px; min-height: 34px; }
+        #appElementsTable { border-collapse: collapse; width: 100%; }
+        #appElementsTable th { background-color: #337ab7; color: white; }
+        .centered-panel { margin-top: 10px; max-width: 900px; width: 100%; }
+        .bottom-button { margin-top: 20px; text-align: center; }
     </style>
 </head>
 
@@ -89,18 +33,29 @@
 
         <div class="row form-group">
             <div class="col-sm-3"><strong>Select Application:</strong></div>
-            <div class="col-sm-9"><select id="applicationSelect" class="form-control">
-                <option>Application</option>
-            </select></div>
+            <div class="col-sm-9">
+                <select id="applicationSelect" class="form-control">
+                    <option>Application</option>
+                </select>
+            </div>
         </div>
 
         <div class="row form-group">
             <div class="col-sm-3"><strong>Job Name:</strong></div>
-            <div class="col-sm-9"><input id="jobNameField" class="detail-span"></input></div>
+            <div class="col-sm-9"><input id="jobNameField" class="detail-span"></div>
         </div>
+
+        <div class="row form-group">
+            <div class="col-sm-3"><strong>Select Scheduler:</strong></div>
+            <div class="col-sm-9">
+                <select id="jobSchedulerSelect" class="form-control">
+                </select>
+            </div>
+        </div>
+
         <div class="row form-group">
             <div class="col-sm-3"><strong>Description:</strong></div>
-            <div class="col-sm-9"><input id="jobDescriptionField" class="detail-span"></input></div>
+            <div class="col-sm-9"><input id="jobDescriptionField" class="detail-span"></div>
         </div>
 
         <div class="row form-group">
@@ -121,8 +76,7 @@
                     <th>Description</th>
                 </tr>
                 </thead>
-                <tbody id="createAppElementsTableBody">
-                </tbody>
+                <tbody id="createAppElementsTableBody"></tbody>
             </table>
         </div>
 
@@ -133,24 +87,13 @@
     </div>
 </div>
 
-
 <!-- Message Modal -->
 <div id="messageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-
-            <div class="modal-header">
-                <h4 class="modal-title" id="messageModalLabel">Info</h4>
-            </div>
-
-            <div class="modal-body">
-                <p id="messageModalBody">Your message goes here.</p>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
-            </div>
-
+            <div class="modal-header"><h4 class="modal-title" id="messageModalLabel">Info</h4></div>
+            <div class="modal-body"><p id="messageModalBody">Your message goes here.</p></div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">OK</button></div>
         </div>
     </div>
 </div>

@@ -89,7 +89,7 @@ class ApplicationStore:
             config_str = replace_placeholders(raw_data='\n'.join(data_stream.readlines()),
                                               parameters=parameters)
 
-            config_str = replace_variables(text=config_str,conf=True,record=False,context=parameters)
+            config_str = replace_variables(text=config_str, conf=True, record=False, context=parameters)
             return json.loads(config_str)
 
     def __load_all_records(self) -> list:
@@ -210,6 +210,7 @@ class JobStore:
             status=config['status'],
             application_id=config['application_id'],
             application_name=config.get('application_name', '-'),
+            scheduler_name=config.get('scheduler_name', '-'),
             create_date=config.get('create_date'),
             update_date=config.get('update_date'),
             created_by=config.get('created_by'),
@@ -801,42 +802,51 @@ class UserRepoProvider:
 class SchedulerRepo(ABC):
 
     @abstractmethod
-    def lookup(self) -> SchedulerData:
+    def lookup(self, sch_name: str) -> SchedulerData:
         pass
 
     @abstractmethod
-    def get_status(self):
+    def list_all(self) -> list:
         pass
 
     @abstractmethod
-    def make_action(self, action: str):
+    def get_status(self, sch_name: str):
+        pass
+
+    @abstractmethod
+    def make_action(self, action: str, sch_name: str):
         pass
 
 
 class FileSchedulerRepo(SchedulerRepo):
     def __init__(self, data_file: str):
         self.data_file = data_file
-        self.sch_info = None
+        self.sch_info = {}
         self.__refresh_sch_data()
 
     def __refresh_sch_data(self):
         with open(self.data_file, 'r') as stream:
-            data = json.load(stream)
-            self.sch_info = FileSchedulerRepo.__read_schedule_data(data)
+            data_list = json.load(stream)
+            self.sch_info = FileSchedulerRepo.__read_schedule_data(data_list)
 
     @staticmethod
-    def __read_schedule_data(data: dict) -> SchedulerData:
-        return SchedulerData(
-            object_id=data['object_id'],
-            name=data['name'],
-            description=data.get('description', None),
-            status=data['status'],
-            current_state=data.get('current_state', 'idle'),
-            host=data.get('host','NA'),
-            create_date=data.get('create_date', None),
-            created_by=data.get('created_by', None),
-            config=data.get('config', {})
-        )
+    def __read_schedule_data(data_list: list) -> SchedulerData:
+        sch_info = {}
+        for data in data_list:
+            name = data['name']
+            sch = SchedulerData(
+                object_id=data['object_id'],
+                name=name,
+                description=data.get('description', None),
+                status=data['status'],
+                current_state=data.get('current_state', 'idle'),
+                host=data.get('host', 'NA'),
+                create_date=data.get('create_date', None),
+                created_by=data.get('created_by', None),
+                config=data.get('config', {})
+            )
+            sch_info[name] = sch
+        return sch_info
 
     @staticmethod
     def __map_schedule_data(sch_data: SchedulerData) -> dict:
@@ -848,32 +858,46 @@ class FileSchedulerRepo(SchedulerRepo):
             "create_date": sch_data.create_date,
             "description": sch_data.description,
             "created_by": sch_data.created_by,
-            "config": sch_data.config
+            "config": sch_data.config,
+            "host": sch_data.host
         }
 
-    def __save_records(self, sch_data: SchedulerData):
+    # def __save_records(self, sch_data: SchedulerData):
+    #     with open(self.data_file, 'w') as stream:
+    #         data = FileSchedulerRepo.__map_schedule_data(sch_data)
+    #         stream.write(json.dumps(data, indent=0))
+
+    def __update_record(self, sch_data: SchedulerData):
+        self.__refresh_sch_data()
+        existing = self.sch_info.get(sch_data.object_id)
+
+        self.sch_info[sch_data.object_id] = sch_data
+        elements = list(map(lambda sch: FileSchedulerRepo.__map_schedule_data(sch), self.sch_info.values()))
         with open(self.data_file, 'w') as stream:
-            data = FileSchedulerRepo.__map_schedule_data(sch_data)
-            stream.write(json.dumps(data, indent=0))
-
-    def lookup(self) -> SchedulerData:
+            stream.write(json.dumps(elements, indent=0))
         self.__refresh_sch_data()
-        return self.sch_info
 
-    def get_status(self):
+    def lookup(self, sch_name: str) -> SchedulerData:
         self.__refresh_sch_data()
-        return self.sch_info.current_state
+        return self.sch_info.get(sch_name)
 
-    def make_action(self, action: str):
+    def get_status(self, sch_name: str):
+        self.__refresh_sch_data()
+        return self.sch_info.get(sch_name).current_state
 
+    def make_action(self, action: str, sch_name: str):
+        sch = self.lookup(sch_name=sch_name)
         if action == 'start':
-            self.sch_info.current_state = 'running'
+            sch.current_state = 'running'
         elif action == 'stop':
-            self.sch_info.current_state = 'stopped'
+            sch.current_state = 'stopped'
         else:
             raise Exception(f'unknown action - {action}')
 
-        self.__save_records(sch_data=self.sch_info)
+        self.__update_record(sch_data=sch)
+
+    def list_all(self) -> list:
+        return self.sch_info.values()
 
 
 class DbSchedulerRepo(SchedulerRepo):
@@ -887,13 +911,16 @@ class DbSchedulerRepo(SchedulerRepo):
                                        driver_args=self.parameters['driver_args'],
                                        jars=self.parameters['jars'])
 
-    def lookup(self) -> SchedulerData:
+    def lookup(self, sch_name: str) -> SchedulerData:
         pass
 
-    def get_status(self):
+    def get_status(self, sch_name: str):
         pass
 
-    def make_action(self, action: str):
+    def make_action(self, action: str, sch_name: str):
+        pass
+
+    def list_all(self) -> list:
         pass
 
 

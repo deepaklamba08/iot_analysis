@@ -28,8 +28,8 @@ function getJobSchedulerInfoUrl(){
   return BASE_URL+"/executor/info";
 }
 
-function getJobSchedulerUrl(){
-  return BASE_URL+"/executor";
+function getJobSchedulerActionUrl(schedulerName){
+  return BASE_URL+"/executor/"+schedulerName;
 }
 
 function getConfigUrl(configName){
@@ -249,6 +249,7 @@ function setJobDetails(responseData){
     document.getElementById('jobOwnerLabel').textContent = jobDetails.created_by;
     document.getElementById('jobScheduledLabel').textContent = jobDetails.is_scheduled;
     document.getElementById('jobScheduleExpressionLabel').textContent = jobDetails.scheduler_expression;
+    document.getElementById('jobSchedulerLabel').textContent = jobDetails.scheduler_name;
 
     var jobParameters = jobDetails.job_parameters;
     var jobParametersTextIp = document.getElementById("jobRunParametersInput");
@@ -417,7 +418,22 @@ function setSchedulerInfo(responseData){
         showMessageModal('No Scheduler information available.');
         return;
     }
-    var info = responseData.data;
+    var schedulers = responseData.data;
+    if (!Array.isArray(schedulers) || schedulers.length === 0) {
+        showMessageModal('No Scheduler information available.');
+        return;
+    }
+
+    const schedulerSelect = document.getElementById('schedulerSelectDropdown');
+    schedulerSelect.schedulerSelect = '';
+    schedulers.forEach(scheduler => {
+       const option = document.createElement('option');
+       option.value = scheduler.name+'~'+scheduler.object_id;
+       option.textContent = scheduler.name
+       schedulerSelect.appendChild(option);
+    })
+
+    info=schedulers[0];
     document.getElementById('schedulerNameLabel').textContent = info.name;
     document.getElementById('schedulerDescriptionLabel').textContent = info.description;
     document.getElementById('schedulerHostLabel').textContent = info.host;
@@ -461,7 +477,8 @@ function schedulerAction(action,message){
     var requestData = {
         "action": action
     };
-    var url = getJobSchedulerUrl()
+    var schedulerName=document.getElementById('schedulerNameLabel').textContent;
+    var url = getJobSchedulerActionUrl(schedulerName)
     makeAPICall(url,'PUT',requestData,function(response){
         if(response.status_code === 200) {
             var schAction = action === 'start' ? 'running' : 'stopped';
@@ -679,6 +696,25 @@ function initCreateJobPage(){
     });
     var appElementsTable = document.getElementById('appElementsTable')
     clearTableContents(appElementsTable);
+    var schedulerListUrl=getJobSchedulerInfoUrl();
+    var schedulerSelect = document.getElementById('jobSchedulerSelect');
+    makeAPICall(schedulerListUrl,'GET',null,function(responseData){
+        if(responseData.status_code !== 200) {
+            showMessageModal('No Scheduler available to create job.');
+            return;
+        }
+        var schedulers = responseData.data;
+        schedulerSelect.schedulerSelect = '';
+        schedulers.forEach(scheduler => {
+           const option = document.createElement('option');
+           option.value = scheduler.name+'~'+scheduler.object_id;
+           option.textContent = scheduler.name
+           schedulerSelect.appendChild(option);
+        })
+
+    },failureCallback);
+    
+    
 }
 function handleApplicationSelectChange(selectedValue) {
     makeAPICall(getApplicationDetailsUrl(selectedValue),'GET',null,function(responseData){
@@ -707,6 +743,7 @@ function createJob(){
     var jobName = document.getElementById('jobNameField').value;
     var jobDesc = document.getElementById('jobDescriptionField').value;
     var appId = document.getElementById('applicationSelect').value;
+    var schedulerName = document.getElementById('jobSchedulerSelect').value;
     var jobConfig = document.getElementById('jobConfig').value;
 
     if (jobName === '' || appId === '') {
@@ -720,6 +757,7 @@ function createJob(){
         application_id: appId,
         application_name: document.getElementById('applicationSelect').selectedOptions[0].textContent,
         status:true,
+        scheduler_name:schedulerName,
         config: JSON.parse(jobConfig)
     };
 
