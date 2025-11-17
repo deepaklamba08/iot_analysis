@@ -420,6 +420,7 @@ function setSchedulerInfo(responseData){
     var info = responseData.data;
     document.getElementById('schedulerNameLabel').textContent = info.name;
     document.getElementById('schedulerDescriptionLabel').textContent = info.description;
+    document.getElementById('schedulerHostLabel').textContent = info.host;
     document.getElementById('schedulerStatusLabel').textContent = info.status;
     document.getElementById('schedulerState').textContent = info.current_state;
     document.getElementById('schedulerCreateDateLabel').textContent = info.create_date;

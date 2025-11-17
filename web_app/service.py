@@ -221,7 +221,8 @@ class WebAppService:
             "created_by": (executor_info.created_by, "-")[executor_info.created_by is None],
             "description": executor_info.description,
             "config": executor_info.config,
-            "current_state": executor_info.current_state
+            "current_state": executor_info.current_state,
+            "host": executor_info.host
         }
 
     @staticmethod

@@ -832,6 +832,7 @@ class FileSchedulerRepo(SchedulerRepo):
             description=data.get('description', None),
             status=data['status'],
             current_state=data.get('current_state', 'idle'),
+            host=data.get('host','NA'),
             create_date=data.get('create_date', None),
             created_by=data.get('created_by', None),
             config=data.get('config', {})

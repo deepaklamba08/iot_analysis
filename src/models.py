@@ -303,6 +303,7 @@ class SchedulerData(Entity):
                  name: str,
                  status: bool,
                  current_state: str,
+                 host: str,
                  create_date: str = None,
                  created_by: str = None,
                  description: str = None,
@@ -311,6 +312,7 @@ class SchedulerData(Entity):
         self.name = name
         self.status = status
         self.current_state = current_state
+        self.host = host
         self.create_date = create_date
         self.created_by = created_by
         self.description = description
