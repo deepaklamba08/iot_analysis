@@ -164,12 +164,12 @@ if __name__ == '__main__':
     if 'config_file' not in app_arguments.keys():
         raise Exception('config_file not provided in parameters')
 
-    config_file = app_arguments['config_file']
-    yaml_config = read_config_file(config_file)
-    app_config = yaml_config['app']
-    job_store = JobStore(app_config['app_config_file'])
-    execution_store = ExecutionStoreProvider.create_execution_store(app_config)
-    sch_repo = SchedulerRepoProvider.create_scheduler_repo(app_config)
+    _config_file = app_arguments['config_file']
+    _yaml_config = read_config_file(_config_file)
+    _app_config = _yaml_config['app']
+    _job_store = JobStore(_app_config['app_config_file'])
+    _execution_store = ExecutionStoreProvider.create_execution_store(_app_config)
+    _sch_repo = SchedulerRepoProvider.create_scheduler_repo(_app_config)
 
-    job_executor = JobExecutor(app_config, job_store, execution_store, sch_repo)
+    job_executor = JobExecutor(_app_config, _job_store, _execution_store, _sch_repo)
     job_executor.execute_jobs()

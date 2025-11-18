@@ -205,7 +205,6 @@ class JobStore:
     @staticmethod
     def __parse_job(config: dict):
         schedule_config = config.get('schedule')
-        job_config = config.get('config')
         if schedule_config:
             job_schedule = JobSchedule(
                 executor=schedule_config['executor'],
@@ -242,7 +241,8 @@ class JobStore:
         raw_data_list = list(filter(lambda record: record.get('type', 'application') == 'job', records))
         for raw_data in raw_data_list:
             job = JobStore.__parse_job(raw_data)
-            self.jobs[job.object_id] = job
+            if job.status:
+                self.jobs[job.object_id] = job
 
     def lookup_job(self, job_id: str) -> Job:
         self.logger.debug(f'executing : JobStore.lookup_job(job_id : {job_id})')
@@ -272,6 +272,12 @@ class JobStore:
         self.__load_jobs(records=self.records)
 
         return job_id
+
+    def delete_job(self, job_id: str):
+        self.logger.debug(f'executing : JobStore.delete_job(job_id : {job_id})')
+        job = self.jobs.get(job_id)
+
+        self.logger.debug(f'exiting : JobStore.delete_job()')
 
 
 class ExecutionDetail:
