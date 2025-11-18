@@ -1,25 +1,24 @@
-import sys
 import os
+import sys
 
 if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
     sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 
 from src.processor import Orchestrator
-from src.models import RuntimeContext, SchedulerData
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, SchedulerRepo, SchedulerRepoProvider
+from src.models import RuntimeContext
+from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, SchedulerRepo, SchedulerRepoProvider, \
+    ExecutionStoreBase
 from src.utils import get_logger, read_config_file
 
 
 class JobExecutor:
 
-    def __init__(self, config_file: str):
+    def __init__(self, app_config, job_store: JobStore, execution_store: ExecutionStoreBase, sch_repo: SchedulerRepo):
         self.logger = get_logger()
-        self.config_file = config_file
-        yaml_config = read_config_file(self.config_file)
-        self.app_config = yaml_config['app']
-        self.job_store = JobStore(self.app_config['app_config_file'])
-        self.execution_store = ExecutionStoreProvider.create_execution_store(self.app_config)
-        self.sch_repo = SchedulerRepoProvider.create_scheduler_repo(self.app_config)
+        self.app_config = app_config
+        self.job_store = job_store
+        self.execution_store = execution_store
+        self.sch_repo = sch_repo
 
     def create_runtime_context(self, parameters) -> RuntimeContext:
         import copy
@@ -95,7 +94,8 @@ class JobExecutor:
             self.logger.error(f'job not found by id - {job_id}')
             raise Exception(f'job not found by id - {job_id}')
 
-        job_parameters = JobExecutor.__merge_parameters(job_parameters=job.job_parameters, runtime_parameters=parameters)
+        job_parameters = JobExecutor.__merge_parameters(job_parameters=job.job_parameters,
+                                                        runtime_parameters=parameters)
         runtime_context = self.create_runtime_context(parameters=job_parameters)
         application_store = ApplicationStore(runtime_context.config_file(), runtime_context.parameters)
         orchestrator = Orchestrator(application_store=application_store,
@@ -164,5 +164,12 @@ if __name__ == '__main__':
     if 'config_file' not in app_arguments.keys():
         raise Exception('config_file not provided in parameters')
 
-    job_executor = JobExecutor(config_file=app_arguments['config_file'])
+    config_file = app_arguments['config_file']
+    yaml_config = read_config_file(config_file)
+    app_config = yaml_config['app']
+    job_store = JobStore(app_config['app_config_file'])
+    execution_store = ExecutionStoreProvider.create_execution_store(app_config)
+    sch_repo = SchedulerRepoProvider.create_scheduler_repo(app_config)
+
+    job_executor = JobExecutor(app_config, job_store, execution_store, sch_repo)
     job_executor.execute_jobs()

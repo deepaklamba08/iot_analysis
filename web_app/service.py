@@ -51,9 +51,15 @@ class WebAppService:
         self.job_store = JobStore(self.analysis_app_config['app_config_file'])
         self.execution_store = ExecutionStoreProvider.create_execution_store(self.analysis_app_config)
         self.sch_repo = SchedulerRepoProvider.create_scheduler_repo(self.analysis_app_config)
+
+        executor = JobExecutor(app_config=self.analysis_app_config,
+                               job_store=self.job_store,
+                               execution_store=self.execution_store,
+                               sch_repo=self.sch_repo)
+
         self.job_exe_orch = JobExecutorOrchestrator(
             sch_repo=self.sch_repo,
-            executor=JobExecutor(config.analysis_app_config())
+            executor=executor
         )
         self.user_repo = UserRepoProvider.create_user_repo(self.analysis_app_config)
 
@@ -295,7 +301,7 @@ class WebAppService:
         else:
             schedule['executor'] = '-'
             schedule['scheduled'] = '-'
-            schedule['schedule_expression'] =  '-'
+            schedule['schedule_expression'] = '-'
 
         return {"object_id": job.object_id,
                 "name": job.name,
