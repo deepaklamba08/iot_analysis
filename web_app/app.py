@@ -125,11 +125,12 @@ def create_app(arguments: list):
     @app.route('/jobs/run/', methods=['POST'])
     @login_required
     def run_job():
+        username = session.get('username')
         content_type = request.headers.get('Content-Type')
-
         if content_type == 'application/json':
             request_data = json.loads(request.data.decode())
             return service.run_job(job_name=request_data['jobName'],
+                                   submitter=username,
                                    job_parameters=json.loads(request_data['jobParameters']))
         else:
             return "Content type is not supported."

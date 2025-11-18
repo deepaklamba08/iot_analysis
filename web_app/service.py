@@ -110,7 +110,7 @@ class WebAppService:
         else:
             return APIResponse(status_code=204, message=f"Job not found: {job_name}").to_response()
 
-    def run_job(self, job_name: str, job_parameters={}):
+    def run_job(self, job_name: str, submitter: str, job_parameters={}):
         self.logger.debug("executing : WebAppService.run_job()")
         job_details = self.__fetch_job_names()
         self.logger.debug(f'job to run - {job_name}')
@@ -118,7 +118,8 @@ class WebAppService:
             self.logger.error(f'job not found - {job_name}')
             return APIResponse(status_code=400, message=f"Job not found: {job_name}").to_response()
         self.job_exe_orch.schedule_job(
-            job_id=job_details[job_name], submitter='UI',
+            job_id=job_details[job_name],
+            submitter=submitter,
             parameters=job_parameters
         )
 
@@ -192,7 +193,6 @@ class WebAppService:
             return APIResponse(status_code=200, message="Job executor is already stopped").to_response()
         else:
             return APIResponse(status_code=400, message="Job executor status is invalid").to_response()
-
 
     def get_element_config(self, element: str):
         self.logger.debug(f"executing : WebAppService.get_element_config(element: {element})")
@@ -272,7 +272,7 @@ class WebAppService:
             "run_type": job_history.run_type if job_history.run_type else '-',
             "message": message,
             "metrics": job_history.metrics,
-            "scheduler":job_history.scheduler
+            "scheduler": job_history.scheduler
         }
 
     @staticmethod
