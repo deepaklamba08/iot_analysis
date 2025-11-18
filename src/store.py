@@ -258,7 +258,7 @@ class JobStore:
 
 class ExecutionDetail:
     __ATTRIBUTES = ["execution_id", "job_id", "app_id", "status", "run_by", "message", "start_time", "end_time",
-                    "update_time", "run_type", "parameters", "metrics"]
+                    "update_time", "run_type", "parameters", "metrics", "scheduler"]
 
     def __init__(self, execution_id: str = None, job_id: str = None, app_id: str = None, status: str = None,
                  message: str = None,
@@ -267,6 +267,7 @@ class ExecutionDetail:
                  end_time: str = None,
                  parameters: dict = None,
                  run_by: str = None,
+                 scheduler: str = None,
                  run_type: str = "adhoc",
                  metrics: dict = {}):
         self.execution_id = execution_id
@@ -279,6 +280,7 @@ class ExecutionDetail:
         self.end_time = end_time
         self.parameters = parameters
         self.run_by = run_by
+        self.scheduler = scheduler
         self.run_type = run_type
         self.metrics = metrics
 

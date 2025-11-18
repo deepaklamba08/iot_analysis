@@ -30,14 +30,14 @@ class JobExecutor:
 
     def execute_jobs(self):
         self.logger.debug('executing : JobExecutor.execute_job()')
-        sch_data = self.sch_repo.lookup()
-
-        if not sch_data:
-            raise Exception("Scheduler data not found. Please ensure the scheduler is initialized.")
-
-        if sch_data.current_state != "running":
-            self.logger.debug(f"Scheduler is not running. Current status: {sch_data.current_state}")
-            return
+        # sch_data = self.sch_repo.lookup()
+        #
+        # if not sch_data:
+        #     raise Exception("Scheduler data not found. Please ensure the scheduler is initialized.")
+        #
+        # if sch_data.current_state != "running":
+        #     self.logger.debug(f"Scheduler is not running. Current status: {sch_data.current_state}")
+        #     return
 
         jobs_to_run = self.execution_store.get_job_history_by_status(statuses=['Scheduled'])
 

@@ -348,6 +348,7 @@ function setJobCurrentStatus(responseData){
     document.getElementById('appNameLabel').textContent = jobStatus.app_name;
     document.getElementById('jobRunByLabel').textContent = jobStatus.run_by;
     document.getElementById('jobRunTypeLabel').textContent = jobStatus.run_type;
+    document.getElementById('jobSchedulerLabel').textContent = jobStatus.scheduler;
     document.getElementById('jobStatusLabel').textContent = jobStatus.status;
     document.getElementById('jobStartDateLabel').textContent = jobStatus.start_time;
     document.getElementById('jobEndDateLabel').textContent = jobStatus.end_time;

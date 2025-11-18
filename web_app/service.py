@@ -271,7 +271,8 @@ class WebAppService:
             "end_time": job_history.end_time if job_history.end_time else '-',
             "run_type": job_history.run_type if job_history.run_type else '-',
             "message": message,
-            "metrics": job_history.metrics
+            "metrics": job_history.metrics,
+            "scheduler":job_history.scheduler
         }
 
     @staticmethod

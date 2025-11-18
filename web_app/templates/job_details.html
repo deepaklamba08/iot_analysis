@@ -13,25 +13,20 @@
     <style>
         html, body {
             height: 100%;
-            margin: 10;
+            margin: 0;
+            padding-top: 15px;     /* Reduced top margin */
+            padding-bottom: 40px;  /* Increased bottom margin */
+            background-color: #f9f9f9;
         }
 
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f9f9f9;
-            padding: 30px;
+            display: block;
         }
 
         .jobDetailsLabel {
             color: white;
             font-weight: 400;
             text-align: center;
-        }
-
-        .form-group span {
-            background-color: #e9ecef;
         }
 
         .detail-span {
@@ -61,17 +56,17 @@
         }
 
         .centered-panel {
-            margin-top: 150px;
+            margin: 0 auto;
+            margin-top: 15px;     /* Reduced top margin slightly */
             max-width: 900px;
             width: 100%;
+            margin-bottom: 30px;  /* Extra bottom gap */
         }
 
         .bottom-button {
             margin-top: 20px;
             text-align: center;
         }
-
-
     </style>
 </head>
 
@@ -128,10 +123,12 @@
             <div class="col-sm-3"><strong>Owner:</strong></div>
             <div class="col-sm-9"><span id="jobOwnerLabel" class="detail-span"></span></div>
         </div>
+
         <div class="row form-group">
             <div class="col-sm-3"><strong>Scheduled:</strong></div>
             <div class="col-sm-9"><span id="jobScheduledLabel" class="detail-span"></span></div>
         </div>
+
         <div class="row form-group">
             <div class="col-sm-3"><strong>Schedule Expression:</strong></div>
             <div class="col-sm-9"><span id="jobScheduleExpressionLabel" class="detail-span"></span></div>
@@ -148,12 +145,10 @@
                     <th>Value</th>
                 </tr>
                 </thead>
-                <tbody id="jobParametersTableBody">
-                </tbody>
+                <tbody id="jobParametersTableBody"></tbody>
             </table>
         </div>
 
-        <!-- Bottom Button -->
         <div class="bottom-button">
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#runJobModal">Run</button>
             <button type="button" class="btn btn-primary" onclick="closePage()">Close</button>
@@ -162,7 +157,7 @@
     </div>
 </div>
 
-<!-- Bootstrap Modal -->
+<!-- Run Job Modal -->
 <div id="runJobModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="runJobModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -172,10 +167,11 @@
             </div>
 
             <div class="modal-body">
-                <!-- Checkbox -->
                 <div class="checkbox">
-                    <label><input type="checkbox" id="provideParamsCheckbox" onchange="toggleParamsTable()"> Provide
-                        parameters</label>
+                    <label>
+                        <input type="checkbox" id="provideParamsCheckbox" onchange="toggleParamsTable()">
+                        Provide parameters
+                    </label>
                 </div>
 
                 <div class="panel-body">
@@ -202,7 +198,7 @@
             </div>
 
             <div class="modal-body">
-                <p id="messageModalBody">Your message goes here.</p>
+                <p id="messageModalBody"></p>
             </div>
 
             <div class="modal-footer">
