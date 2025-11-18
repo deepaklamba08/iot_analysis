@@ -239,6 +239,8 @@ function setJobDetails(responseData){
     }
 
     var jobDetails = responseData.data;
+
+    var jobSchedule=jobDetails.schedule;
     document.getElementById('jobNameLabel').textContent = jobDetails.name;
     document.getElementById('appIdLabel').textContent = jobDetails.application_id;
     document.getElementById('appNameLabel').textContent = jobDetails.application_name;
@@ -247,9 +249,9 @@ function setJobDetails(responseData){
     document.getElementById('jobCreateDateLabel').textContent = jobDetails.create_date;
     document.getElementById('jobLastModifiedLabel').textContent = jobDetails.update_date;
     document.getElementById('jobOwnerLabel').textContent = jobDetails.created_by;
-    document.getElementById('jobScheduledLabel').textContent = jobDetails.is_scheduled;
-    document.getElementById('jobScheduleExpressionLabel').textContent = jobDetails.scheduler_expression;
-    document.getElementById('jobSchedulerLabel').textContent = jobDetails.scheduler_name;
+    document.getElementById('jobScheduledLabel').textContent = jobSchedule.scheduled;
+    document.getElementById('jobScheduleExpressionLabel').textContent = jobSchedule.schedule_expression;
+    document.getElementById('jobSchedulerLabel').textContent = jobSchedule.executor;
 
     var jobParameters = jobDetails.job_parameters;
     var jobParametersTextIp = document.getElementById("jobRunParametersInput");
@@ -752,14 +754,18 @@ function createJob(){
         return;
     }
 
+    var jsonConfig=JSON.parse(jobConfig);
+    jsonConfig['schedule']={
+        'executor': schedulerName.split('~')[0],
+    };
+
     var requestData = {
         name: jobName,
         description: jobDesc,
         application_id: appId,
         application_name: document.getElementById('applicationSelect').selectedOptions[0].textContent,
         status:true,
-        scheduler_name:schedulerName,
-        config: JSON.parse(jobConfig)
+        config: jsonConfig
     };
 
     makeAPICall(getCreateJobUrl(), 'POST', requestData, function(response) {

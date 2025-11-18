@@ -267,9 +267,9 @@
     "application_id": "1",
     "type": "job",
     "config": {
-      "parameters": {
-        "lookup_path": "device_lookup.json"
-      }
+    },
+    "parameters": {
+      "lookup_path": "device_lookup.json"
     }
   },
   {
@@ -280,9 +280,9 @@
     "application_id": "2",
     "type": "job",
     "config": {
-      "parameters": {
-        "file_path": "device_lookup.json"
-      }
+    },
+    "parameters": {
+      "file_path": "device_lookup.json"
     }
   },
   {
@@ -293,9 +293,9 @@
     "application_id": "3",
     "type": "job",
     "config": {
-      "parameters": {
-        "message_text": "<message text>"
-      }
+    },
+    "parameters": {
+      "message_text": "<message text>"
     }
   },
   {
@@ -306,10 +306,10 @@
     "application_id": "4",
     "type": "job",
     "config": {
-      "parameters": {
-        "input_data_file_path": "",
-        "run_date": ""
-      }
+    },
+    "parameters": {
+      "input_data_file_path": "",
+      "run_date": ""
     }
   }
 ]

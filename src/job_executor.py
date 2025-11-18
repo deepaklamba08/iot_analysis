@@ -80,11 +80,13 @@ class JobExecutor:
         self.logger.debug('exiting : JobExecutor.execute_job()')
 
     @staticmethod
-    def __merge_parameters(job_parameters, parameters):
-        for parameter_name in parameters.keys():
-            job_parameters[parameter_name] = parameters[parameter_name]
+    def __merge_parameters(job_parameters: list, runtime_parameters: dict):
+        run_parameters = {job_parameter.parameter_name: job_parameter.parameter_value for job_parameter in
+                          job_parameters}
+        for parameter_name in runtime_parameters.keys():
+            run_parameters[parameter_name] = runtime_parameters[parameter_name]
 
-        return job_parameters
+        return run_parameters
 
     def schedule_job(self, job_id: str, submitter: str = '-', run_type: str = '-', parameters: dict = {}):
         self.logger.debug('executing : JobExecutor.execute_job()')
@@ -93,7 +95,7 @@ class JobExecutor:
             self.logger.error(f'job not found by id - {job_id}')
             raise Exception(f'job not found by id - {job_id}')
 
-        job_parameters = JobExecutor.__merge_parameters(job_parameters=job.job_parameters(), parameters=parameters)
+        job_parameters = JobExecutor.__merge_parameters(job_parameters=job.job_parameters, runtime_parameters=parameters)
         runtime_context = self.create_runtime_context(parameters=job_parameters)
         application_store = ApplicationStore(runtime_context.config_file(), runtime_context.parameters)
         orchestrator = Orchestrator(application_store=application_store,

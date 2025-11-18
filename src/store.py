@@ -4,7 +4,7 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 
-from src.models import Application, Source, Transformation, Action, Job, User, SchedulerData
+from src.models import Application, Source, Transformation, Action, Job, User, SchedulerData, JobSchedule, JobParameter
 from src.utils import get_logger, replace_placeholders, Constants, replace_variables
 
 
@@ -204,13 +204,31 @@ class JobStore:
 
     @staticmethod
     def __parse_job(config: dict):
+        schedule_config = config.get('schedule')
+        job_config = config.get('config')
+        if schedule_config:
+            job_schedule = JobSchedule(
+                executor=schedule_config['executor'],
+                scheduled=schedule_config.get('scheduled', False),
+                schedule_expression=schedule_config.get('schedule_expression')
+            )
+        else:
+            job_schedule = None
+
+        params = config.get('parameters')
+        if params:
+            job_parameters = [JobParameter(k, v) for k, v in params.items()]
+        else:
+            job_parameters = []
+
         return Job(
             object_id=config['id'],
             name=config['name'],
             status=config['status'],
             application_id=config['application_id'],
             application_name=config.get('application_name', '-'),
-            scheduler_name=config.get('scheduler_name', '-'),
+            job_schedule=job_schedule,
+            job_parameters=job_parameters,
             create_date=config.get('create_date'),
             update_date=config.get('update_date'),
             created_by=config.get('created_by'),

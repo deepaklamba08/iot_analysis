@@ -243,11 +243,27 @@ class RuntimeContext:
         return self.parameters.get(key, default)
 
 
+class JobSchedule:
+
+    def __init__(self, executor: str, scheduled: bool, schedule_expression: str):
+        self.executor = executor
+        self.scheduled = scheduled
+        self.schedule_expression = schedule_expression
+
+
+class JobParameter:
+
+    def __init__(self, parameter_name: str, parameter_value: str):
+        self.parameter_name = parameter_name
+        self.parameter_value = parameter_value
+
+
 class Job(Entity):
     def __init__(self, object_id: str, name: str, status: bool,
                  application_id: str,
                  application_name: str,
-                 scheduler_name: str,
+                 job_schedule: JobSchedule,
+                 job_parameters=list,
                  create_date: str = None,
                  update_date: str = None,
                  created_by: str = None,
@@ -259,7 +275,8 @@ class Job(Entity):
         self.status = status
         self.application_id = application_id
         self.application_name = application_name
-        self.scheduler_name = scheduler_name
+        self.job_schedule = job_schedule
+        self.job_parameters = job_parameters
         self.create_date = create_date
         self.update_date = update_date
         self.created_by = created_by

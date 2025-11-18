@@ -284,6 +284,19 @@ class WebAppService:
 
     @staticmethod
     def __map_job(job: Job) -> dict:
+        job_parameters = job.job_parameters
+        parameters = {job_parameter.parameter_name: job_parameter.parameter_value for job_parameter in job_parameters}
+        job_schedule = job.job_schedule
+        schedule = {}
+        if job_schedule:
+            schedule['executor'] = job_schedule.executor
+            schedule['scheduled'] = job_schedule.scheduled
+            schedule['schedule_expression'] = job_schedule.schedule_expression
+        else:
+            schedule['executor'] = '-'
+            schedule['scheduled'] = '-'
+            schedule['schedule_expression'] =  '-'
+
         return {"object_id": job.object_id,
                 "name": job.name,
                 "status": WebAppService.__map_status(job.status),
@@ -294,10 +307,8 @@ class WebAppService:
                 "update_date": (job.update_date, "-")[job.update_date is None],
                 "created_by": (job.created_by, "-")[job.created_by is None],
                 "updated_by": (job.updated_by, "-")[job.updated_by is None],
-                "job_parameters": job.job_parameters(),
-                "is_scheduled": "Yes" if job.is_scheduled() else "No",
-                "scheduler_expression": job.scheduler_expression() if job.scheduler_expression() else '-',
-                "scheduler_name": job.scheduler_name
+                "job_parameters": parameters,
+                "schedule": schedule
                 }
 
     @staticmethod
