@@ -5,4 +5,5 @@ app:
   analysis_app_config: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/iot_analysis_config.yaml
   web_app_static_folder: !ENV ${PATH_TO_ANALYSIS_APP}/web_app/static
   template_folder: !ENV ${PATH_TO_ANALYSIS_APP}/web_app/templates
+  log_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/logs/web_app.log
   api_secret_key: 'iot_api_secret_key'

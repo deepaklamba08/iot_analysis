@@ -1,0 +1,25 @@
+[
+  {
+    "object_id": "1",
+    "name": "Simple Scheduler",
+    "status": true,
+    "current_state": "running",
+    "create_date": "2023-10-01",
+    "description": "A simple scheduler for managing tasks.",
+    "created_by": "admin",
+    "config": {
+      "params": [
+        {
+          "name": "failure_retry",
+          "value": 2,
+          "description": "Number of retries on failure"
+        },
+        {
+          "name": "failure_retry_interval",
+          "value": 5,
+          "description": "Failure retry interval in seconds"
+        }
+      ]
+    }
+  }
+]
