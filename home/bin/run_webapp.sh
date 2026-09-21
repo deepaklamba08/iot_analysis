@@ -143,13 +143,112 @@ orchestrate(){
       run_app
   elif [[ "$ACTION" = "stop" ]]; then
       log_message "INFO" "stopping app"
+      stop_app
   else
     log_message "ERROR" "Action must be either start or stop"
   fi
 }
 
+is_app_running() {
+
+  if [ ! -f "$PID_FILE" ]
+  then
+    return 1
+  fi
+
+  APP_PID=$(cat "$PID_FILE")
+
+  if [[ ! "$APP_PID" =~ ^[0-9]+$ ]]
+  then
+    return 1
+  fi
+
+  if kill -0 "$APP_PID" 2>/dev/null
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+stop_app() {
+
+  log_message "INFO" "Stopping app"
+
+  if [ ! -f "$PID_FILE" ]
+  then
+    log_message "INFO" "Application is not running. PID file does not exist."
+    return 0
+  fi
+
+  APP_PID=$(cat "$PID_FILE")
+
+  if [[ ! "$APP_PID" =~ ^[0-9]+$ ]]
+  then
+    log_message "ERROR" "Invalid PID found in PID file: $APP_PID"
+    rm -f "$PID_FILE"
+    return 1
+  fi
+
+  if ! kill -0 "$APP_PID" 2>/dev/null
+  then
+    log_message "INFO" \
+      "Application is already stopped. Removing stale PID file."
+
+    rm -f "$PID_FILE"
+
+    return 0
+  fi
+
+  log_message "INFO" \
+    "Stopping application with PID - $APP_PID"
+
+  kill "$APP_PID"
+
+  # Wait for process to stop
+  for i in {1..10}
+  do
+
+    if ! kill -0 "$APP_PID" 2>/dev/null
+    then
+      break
+    fi
+
+    sleep 1
+
+  done
+
+  if kill -0 "$APP_PID" 2>/dev/null
+  then
+
+    log_message "ERROR" \
+      "Application did not stop gracefully. Sending SIGKILL."
+
+    kill -9 "$APP_PID"
+
+  fi
+
+  rm -f "$PID_FILE"
+
+  log_message "INFO" "Application stopped"
+
+  return 0
+}
+
 run_app(){
   log_message "INFO" "Running app"
+
+    # Check whether application is already running
+  if is_app_running
+  then
+    APP_PID=$(cat "$PID_FILE")
+
+    log_message "INFO" \
+      "Application is already running with PID - $APP_PID"
+
+    return 0
+  fi
+
   CLI_INPUT_STRING="['config_file','$CONFIG_FILE_PATH', 'submitter', '$SUBMITTER']" # ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
   #SHELL_CMD="$PYTHON_HOME $PYTHON_WEB_APP_NAME $CLI_INPUT_STRING"
@@ -158,18 +257,42 @@ run_app(){
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
   eval $SHELL_CMD
-  APP_RUN_STATUS=$?
-  $APP_RUN_STATUS > $PID_FILE
-  log_message "INFO" "App run status code - $APP_RUN_STATUS"
-  if [ $APP_RUN_STATUS -eq 0 ]
+  #APP_RUN_STATUS=$?
+
+  APP_PID=$!
+
+  # Store PID
+  echo "$APP_PID" > "$PID_FILE"
+  #$APP_RUN_STATUS > $PID_FILE
+  log_message "INFO" "Application started with PID - $APP_PID"
+
+  # Give the process a moment to start
+  sleep 2
+  if is_app_running
   then
-    log_message "INFO" "App run completed with status code - $APP_RUN_STATUS"
-    log_message "INFO" "Exiting run app"
-    exit 0
+    log_message "INFO" \
+      "Application is running successfully with PID - $APP_PID"
+
+    return 0
   else
-    log_message "ERROR" "App run failed with status code - $APP_RUN_STATUS"
-    exit 1
+    log_message "ERROR" \
+      "Application failed to start"
+
+    rm -f "$PID_FILE"
+
+    return 1
   fi
+
+#  log_message "INFO" "App run status code - $APP_RUN_STATUS"
+#  if [ $APP_RUN_STATUS -eq 0 ]
+#  then
+#    log_message "INFO" "App run completed with status code - $APP_RUN_STATUS"
+#    log_message "INFO" "Exiting run app"
+#    exit 0
+#  else
+#    log_message "ERROR" "App run failed with status code - $APP_RUN_STATUS"
+#    exit 1
+#  fi
 
 }
 
