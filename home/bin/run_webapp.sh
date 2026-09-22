@@ -273,7 +273,12 @@ run_app(){
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
-  eval "$SHELL_CMD" > /dev/null 2>&1 &
+  #eval "$SHELL_CMD" > /dev/null 2>&1 &
+  "$PYTHON_HOME" -m flask \
+    --app "$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)" \
+    run \
+    --host "$HOST_NAME" \
+    > /dev/null 2>&1 &
 
   APP_PID=$!
 
