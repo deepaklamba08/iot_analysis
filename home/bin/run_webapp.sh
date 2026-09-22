@@ -205,7 +205,7 @@ stop_app() {
   if ! kill -0 "$APP_PID" 2>/dev/null
   then
     log_message "INFO" \
-      "Application is already stopped. Removing stale PID file."
+      "Application with PID- $APP_PID is already stopped. Removing stale PID file."
 
     rm -f "$PID_FILE"
 
