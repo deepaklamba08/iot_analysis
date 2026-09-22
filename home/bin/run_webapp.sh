@@ -3,7 +3,7 @@ CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 LOG_FILE_PATH="../logs/webapp.log"
 source set_env.sh
 
-HOST_NAME="localhost"
+HOST_NAME="0.0.0.0"
 
 PID_FILE=$PATH_TO_ANALYSIS_APP/home/tmp/app.pid
 
