@@ -123,7 +123,7 @@ set_parameters_if_absent(){
 }
 
 validate_parameters(){
-  MANDATORY_PARAMETERS=(CONFIG_FILE_PATH ACTION)
+  MANDATORY_PARAMETERS=(ACTION)
   for parameter_name in "${MANDATORY_PARAMETERS[@]}"
   do
     parameter_value="${!parameter_name}"
@@ -145,7 +145,7 @@ orchestrate(){
       log_message "INFO" "stopping app"
       stop_app
   elif [[ "$ACTION" = "status" ]]; then
-      log_message "INFO" "getting app status"
+      log_message "INFO" "Getting app status"
       app_status
   else
     log_message "ERROR" "Action must be either start or stop"
@@ -155,9 +155,9 @@ orchestrate(){
 app_status() {
   if is_app_running
   then
-    echo "running"
+   log_message "INFO" "Application is running"
   else
-    echo "stopped"
+   log_message "INFO" "Application is not running"
   fi
 }
 
@@ -259,6 +259,12 @@ run_app(){
       "Application is already running with PID - $APP_PID"
 
     return 0
+  fi
+
+  if [[ -z "$CONFIG_FILE_PATH" ]];
+  then
+    log_message "INFO" "Parameter $CONFIG_FILE_PATH is not set"
+    exit 1
   fi
 
   CLI_INPUT_STRING="['config_file','$CONFIG_FILE_PATH', 'submitter', '$SUBMITTER']" # ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
