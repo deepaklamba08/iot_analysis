@@ -263,7 +263,7 @@ run_app(){
 
   if [[ -z "$CONFIG_FILE_PATH" ]];
   then
-    log_message "INFO" "Parameter $CONFIG_FILE_PATH is not set"
+    log_message "INFO" "Parameter config file is not set"
     exit 1
   fi
 
