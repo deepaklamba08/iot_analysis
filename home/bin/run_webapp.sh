@@ -144,8 +144,20 @@ orchestrate(){
   elif [[ "$ACTION" = "stop" ]]; then
       log_message "INFO" "stopping app"
       stop_app
+  elif [[ "$ACTION" = "status" ]]; then
+      log_message "INFO" "getting app status"
+      app_status
   else
     log_message "ERROR" "Action must be either start or stop"
+  fi
+}
+
+app_status() {
+  if is_app_running
+  then
+    echo "running"
+  else
+    echo "stopped"
   fi
 }
 
