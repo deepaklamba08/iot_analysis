@@ -1,7 +1,7 @@
 app:
   app_name: Dev_App
   port: 5000
-  host: 127.0.0.1
+  host: 0.0.0.0
   analysis_app_config: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/iot_analysis_config.yaml
   web_app_static_folder: !ENV ${PATH_TO_ANALYSIS_APP}/web_app/static
   template_folder: !ENV ${PATH_TO_ANALYSIS_APP}/web_app/templates
