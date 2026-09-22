@@ -263,7 +263,7 @@ run_app(){
 
   CLI_INPUT_STRING="['config_file','$CONFIG_FILE_PATH', 'submitter', '$SUBMITTER']" # ${GENERIC_PARAMETERS[@]} $DEFAULT_ARGS_TO_WEB_APP"
   log_message "INFO" "CLI input - $CLI_INPUT_STRING"
-  SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --host $HOST_NAME --debug"
+  SHELL_CMD="$PYTHON_HOME -m flask --app \"$PYTHON_WEB_APP_NAME:create_app($CLI_INPUT_STRING)\" run --host $HOST_NAME"
 
   log_message "INFO" "Shell cmd - $SHELL_CMD"
 
