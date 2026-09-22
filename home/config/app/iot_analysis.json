@@ -107,7 +107,7 @@
         "type": "telegram_message",
         "config": {
           "message_source_type": "source",
-          "message_source_name": "telegram-source",
+          "message_source_name": "Read Source Messages",
           "credential_provider": {
             "type": "environment_variable",
             "variables": {
@@ -150,7 +150,7 @@
         "type": "telegram_message",
         "config": {
           "message_source_type": "source",
-          "message_source_name": "telegram-source",
+          "message_source_name": "Read Telegram Message",
           "credential_provider": {
             "type": "environment_variable",
             "variables": {
