@@ -1,5 +1,6 @@
 app:
   app_config_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/config/app/
+  job_exe_log_file: !ENV ${PATH_TO_ANALYSIS_APP}/home/logs/job_exe_app.log
   execution_summary:
     type: file-v2
     execution_summary_dir: !ENV ${PATH_TO_ANALYSIS_APP}/home/data/exe_history
