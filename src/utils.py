@@ -50,7 +50,7 @@ def get_credentials(config: dict) -> dict:
         raise Exception(f'credential provider not supported - {provider_type}')
 
 
-def get_logger(log_file_name: str):
+def get_logger(log_file_name: str = None):
     if not log_file_name:
         base_dir = os.environ.get('PATH_TO_ANALYSIS_APP')
         log_file_name = os.path.join(base_dir, 'logs', 'app.log')
