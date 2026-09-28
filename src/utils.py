@@ -53,6 +53,8 @@ def get_credentials(config: dict) -> dict:
 def get_logger(log_file_name: str = None):
     if not log_file_name:
         base_dir = os.environ.get('PATH_TO_ANALYSIS_APP')
+        if not base_dir:
+            base_dir = '../'
         log_file_name = os.path.join(base_dir, 'home', 'logs', 'app.log')
 
     logging.basicConfig(filename=log_file_name,
