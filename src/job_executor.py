@@ -14,8 +14,7 @@ from src.utils import get_logger, read_config_file
 class JobExecutor:
 
     def __init__(self, app_config, job_store: JobStore, execution_store: ExecutionStoreBase, sch_repo: SchedulerRepo):
-        log_file=app_config.get('log_file')
-        print("**********- log_file - ", log_file, " **********")
+        log_file = app_config.get('log_file')
         self.logger = get_logger(log_file_name=log_file)
         self.app_config = app_config
         self.job_store = job_store

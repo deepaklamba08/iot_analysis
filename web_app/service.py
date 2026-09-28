@@ -44,7 +44,7 @@ class APIResponse:
 class WebAppService:
 
     def __init__(self, config: WebAppConfig):
-        self.logger = get_logger()
+        self.logger = get_logger(log_file_name=config.get_value('log_file'))
         self.config = config
         self.analysis_app_config = read_config_file(config.analysis_app_config())['app']
         self.application_store = ApplicationStore(self.analysis_app_config['app_config_file'])

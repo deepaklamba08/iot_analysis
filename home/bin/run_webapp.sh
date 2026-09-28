@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
-LOG_FILE_PATH="../logs/webapp.log"
+LOG_FILE_PATH="../logs/script_webapp.log"
 source set_env.sh
 
 HOST_NAME="0.0.0.0"
