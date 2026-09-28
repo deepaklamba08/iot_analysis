@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
-LOG_FILE_PATH="../logs/job_executor.log"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_FILE_PATH="$SCRIPT_DIR/../logs/job_executor.log"
 source "$SCRIPT_DIR/set_env.sh"
 
 log_message() {
