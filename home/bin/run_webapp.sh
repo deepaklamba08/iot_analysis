@@ -6,7 +6,7 @@ source set_env.sh
 HOST_NAME="0.0.0.0"
 
 PID_FILE=$PATH_TO_ANALYSIS_APP/home/tmp/app.pid
-
+export SERVICE_NAME="web_app"
 log_message() {
   LEVEL=$1
   MESSAGE=$2

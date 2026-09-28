@@ -2,6 +2,7 @@
 CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 LOG_FILE_PATH="../logs/analysis.log"
 source set_env.sh
+export SERVICE_NAME="analysis_app"
 log_message() {
   LEVEL=$1
   MESSAGE=$2

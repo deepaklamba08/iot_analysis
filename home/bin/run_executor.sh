@@ -3,7 +3,7 @@ CURRENT_DATETIME=`date +%m-%d-%Y" "%H:%M:%S`
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE_PATH="$SCRIPT_DIR/../logs/job_executor.log"
 source "$SCRIPT_DIR/set_env.sh"
-
+export SERVICE_NAME="job_executor_app"
 log_message() {
   LEVEL=$1
   MESSAGE=$2
