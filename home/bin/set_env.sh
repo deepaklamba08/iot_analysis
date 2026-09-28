@@ -9,3 +9,15 @@ export PATH_TO_WEB_APP="${PATH_TO_ANALYSIS_APP}/"
 export DEFAULT_ARGS_TO_WEB_APP="execution_summary_dir ${PATH_TO_ANALYSIS_APP}/test/summary"
 
 export PYTHON_ANALYSIS_JOB_EXECUTOR_APP_NAME="${PATH_TO_ANALYSIS_APP}/src/job_executor.py"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CURRENT_SCRIPT="$(realpath "${BASH_SOURCE[0]}")"
+
+for file in "$SCRIPT_DIR"/set_*.sh; do
+    [ -f "$file" ] || continue
+
+    if [ "$(realpath "$file")" != "$CURRENT_SCRIPT" ]; then
+        echo "Sourcing: $file"
+        source "$file"
+    fi
+done
