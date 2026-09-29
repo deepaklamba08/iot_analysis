@@ -4,9 +4,9 @@ import sys
 if 'PATH_TO_ANALYSIS_APP' in os.environ.keys():
     sys.path.append(os.environ['PATH_TO_ANALYSIS_APP'])
 
-from src.processor import Orchestrator
-from src.models import RuntimeContext
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, SchedulerRepo, SchedulerRepoProvider, \
+from src.process.processor import Orchestrator
+from src.common.models import RuntimeContext
+from src.store.store import ApplicationStore, ExecutionStoreProvider, JobStore, SchedulerRepo, SchedulerRepoProvider, \
     ExecutionStoreBase
 from src.utils import get_logger, read_config_file
 

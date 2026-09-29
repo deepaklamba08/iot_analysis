@@ -4,7 +4,7 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 
-from src.models import Application, Source, Transformation, Action, Job, User, SchedulerData, JobSchedule, JobParameter
+from src.common.models import Application, Source, Transformation, Action, Job, User, SchedulerData, JobSchedule, JobParameter
 from src.utils import get_logger, replace_placeholders, Constants, replace_variables
 
 

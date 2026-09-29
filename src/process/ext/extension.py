@@ -1,6 +1,6 @@
 import requests
 
-from src.models import DataBag, TransformationTemplate, ActionTemplate, DatabagLookup
+from src.common.models import DataBag, TransformationTemplate, ActionTemplate, DatabagLookup
 from src.utils import get_logger, get_credentials
 
 

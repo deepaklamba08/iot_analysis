@@ -4,7 +4,7 @@ import os
 from abc import abstractmethod
 from datetime import datetime
 
-from src.models import DataBag, ActionTemplate, DatabagLookup
+from src.common.models import DataBag, ActionTemplate, DatabagLookup
 from src.utils import get_logger, replace_placeholders, replace_variables
 
 

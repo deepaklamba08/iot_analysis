@@ -1,6 +1,6 @@
 from src.job_executor import JobExecutor, JobExecutorOrchestrator
-from src.models import Application, Source, Transformation, Action, Job, User
-from src.store import ApplicationStore, ExecutionStoreProvider, JobStore, UserRepoProvider, SchedulerRepoProvider
+from src.common.models import Application, Source, Transformation, Action, Job, User
+from src.store.store import ApplicationStore, ExecutionStoreProvider, JobStore, UserRepoProvider, SchedulerRepoProvider
 from src.utils import get_logger
 from src.utils import read_config_file
 

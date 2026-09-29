@@ -2,8 +2,8 @@ import csv
 import json
 
 
-from src.models import DataBag, SourceTemplate
-from src.models import RuntimeContext
+from src.common.models import DataBag, SourceTemplate
+from src.common.models import RuntimeContext
 from src.utils import get_logger, get_credentials, replace_placeholders
 
 

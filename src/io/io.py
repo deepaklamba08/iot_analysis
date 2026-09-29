@@ -380,17 +380,3 @@ class QueryStatement:
         self.__object_store.add_file(object_name=self.__object_name, file_metadata=file_metadata)
 
 
-store = ObjectStore(store_path="D:\\dev\\iot_analysis\\test\\store\\")
-
-# store.register_object(object_name='test_table', file_format='json', location="D:\\dev\\iot_analysis\\test\\store\\",
-#                      properties={})
-
-statement = store.query_object(object_name='test_table')
-
-data = [
-    {"type": "job"}
-]
-#statement.insert_batch(data=data)
-
-result=statement.query(operator=Operators.eq_op(key='type', value="job"))
-print(result)

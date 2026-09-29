@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from src.models import DataBag, TransformationTemplate, DatabagLookup
+from src.common.models import DataBag, TransformationTemplate, DatabagLookup
 from src.utils import get_logger
 import json
 

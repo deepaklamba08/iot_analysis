@@ -2,9 +2,9 @@ import copy
 import datetime
 from abc import ABC, abstractmethod
 
-from src.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
+from src.common.models import RuntimeContext, Application, Source, Transformation, Action, SourceTemplate, \
     TransformationTemplate, ActionTemplate, DatabagRegistry, Job
-from src.store import ApplicationStore, ExecutionStore, JobStore
+from src.store.store import ApplicationStore, ExecutionStore, JobStore
 from src.utils import get_logger
 from src.utils import load_module, Constants
 import traceback
@@ -36,12 +36,12 @@ class SourceProcessor(Processor):
 
     def __init__(self, sources: list, runtime_context: RuntimeContext, databag_registry: DatabagRegistry):
         self.sources = sources
-        self.source_providers = {'click_house': 'src.sources.ClickHouseSource',
-                                 'json': 'src.sources.JsonSource',
-                                 'csv': 'src.sources.CsvSource',
-                                 'mongo_db': 'src.sources.MongoDbSource',
-                                 'dev_source': 'src.sources.DevDataSource',
-                                 'db_source': 'src.sources.DbSource'
+        self.source_providers = {'click_house': 'src.process.source.sources.ClickHouseSource',
+                                 'json': 'src.process.source.sources.JsonSource',
+                                 'csv': 'src.process.source.sources.CsvSource',
+                                 'mongo_db': 'src.process.source.sources.MongoDbSource',
+                                 'dev_source': 'src.process.source.sources.DevDataSource',
+                                 'db_source': 'src.process.source.sources.DbSource'
                                  }
         self.logger = get_logger()
         self.runtime_context = runtime_context
@@ -83,14 +83,14 @@ class TransformationProcessor(Processor):
                  runtime_context: RuntimeContext,
                  databag_registry: DatabagRegistry):
         self.transformations = transformations
-        self.transformation_providers = {'dummy_transformation': 'src.transformations.DummyTransformation',
-                                         'message_format_transformation': 'src.extension.MessageFormatterTransformation',
-                                         'field_selector': 'src.transformations.FieldSelectorTransformation',
-                                         'field_reject': 'src.transformations.FieldRejectTransformation',
-                                         'add_field': 'src.transformations.AddConstantFieldTransformation',
-                                         'rename_field': 'src.transformations.RenameFieldTransformation',
-                                         'concat_field': 'src.transformations.ConcatFieldTransformation',
-                                         'record_to_json': 'src.transformations.RecordToJsonTransformation'}
+        self.transformation_providers = {'dummy_transformation': 'src.process.transform.transformations.DummyTransformation',
+                                         'message_format_transformation': 'src.process.ext.extension.MessageFormatterTransformation',
+                                         'field_selector': 'src.process.transform.transformations.FieldSelectorTransformation',
+                                         'field_reject': 'src.process.transform.transformations.FieldRejectTransformation',
+                                         'add_field': 'src.process.transform.transformations.AddConstantFieldTransformation',
+                                         'rename_field': 'src.process.transform.transformations.RenameFieldTransformation',
+                                         'concat_field': 'src.process.transform.transformations.ConcatFieldTransformation',
+                                         'record_to_json': 'src.process.transform.transformations.RecordToJsonTransformation'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
@@ -133,12 +133,12 @@ class ActionProcessor(Processor):
                  databag_registry: DatabagRegistry):
         self.actions = actions
         self.data_dict = data_dict
-        self.action_providers = {'log_data': 'src.actions.LogDataAction',
-                                 'telegram_message': 'src.extension.TelegramMessageAction',
-                                 'email_notification': 'src.extension.EmailNotificationAction',
-                                 'json_sink': 'src.actions.JsonSinkAction',
-                                 'csv_sink': 'src.actions.CSVSinkAction',
-                                 'shell_cmd': 'src.actions.ShellAction'}
+        self.action_providers = {'log_data': 'src.process.action.actions.LogDataAction',
+                                 'telegram_message': 'src.process.ext.extension.TelegramMessageAction',
+                                 'email_notification': 'src.process.ext.extension.EmailNotificationAction',
+                                 'json_sink': 'src.process.action.actions.JsonSinkAction',
+                                 'csv_sink': 'src.process.action.actions.CSVSinkAction',
+                                 'shell_cmd': 'src.process.action.actions.ShellAction'}
         self.logger = get_logger()
         self.runtime_context = runtime_context
         self.databag_registry = databag_registry
