@@ -3,6 +3,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from typing import List, Any, Callable, Dict
+from pathlib import Path
 
 
 class FileMetadata:
@@ -58,30 +59,26 @@ class JsonFileUtil:
 class ObjectStore:
 
     def __init__(self, store_path):
-        base_dir = os.path.join(store_path, 'db')
-        if not os.path.exists(base_dir):
-            os.makedirs(base_dir)
-        self.store_path = os.path.join(base_dir, 'store.json')
+        self.base_db_dir = os.path.join(store_path, 'db')
+        self.base_data_dir = os.path.join(store_path, 'data')
+        if not os.path.exists(self.base_db_dir):
+            os.makedirs(self.base_db_dir)
+        if not os.path.exists(self.base_data_dir):
+            os.makedirs(self.base_data_dir)
 
-        if not os.path.isfile(self.store_path):
-            JsonFileUtil.write_file(self.store_path, [], 'x', 'utf-8')
-
-    def register_object(self, object_name: str, file_format: str, location: str, properties: dict = {}):
-        existing = self.get_object_metadata(object_name=object_name)
-        if existing:
+    def register_object(self, object_name: str, file_format: str, properties: dict = {}):
+        obj_file = self.__get_store_file_path(object_name)
+        if os.path.exists(obj_file):
             raise ValueError(f'object already exists- {object_name}')
 
         if file_format != 'json':
             raise ValueError(f'file format not supported- {file_format}')
 
-        if not location:
-            raise ValueError(f'location must be provided')
-
-        obj_loc = os.path.join(location, object_name)
-        if not os.path.exists(obj_loc):
-            os.makedirs(obj_loc)
+        data_location = self.__get_data_file_path(object_name)
+        if not os.path.exists(data_location):
+            os.makedirs(data_location)
         else:
-            raise ValueError(f'location already exist- {obj_loc}')
+            raise ValueError(f'location already exist- {data_location}')
 
         metadata = ObjectMetadata(
             object_name=object_name,
@@ -89,17 +86,16 @@ class ObjectStore:
             file_count=0,
             created_by='',
             file_format=file_format,
-            location=obj_loc,
+            location=data_location,
             properties=properties
         )
-        self.__update_object(metadata)
+        self.__save_object(metadata)
 
     def list_objects(self):
         return self.__read_all()
 
     def get_object_metadata(self, object_name: str) -> ObjectMetadata:
-        existing = list(filter(lambda element: element.object_name == object_name, self.__read_all()))
-        return existing[0] if len(existing) > 0 else None
+        return self.__read_object_data(object_name)
 
     def add_file(self, object_name: str, file_metadata: FileMetadata):
         existing = self.get_object_metadata(object_name=object_name)
@@ -112,24 +108,40 @@ class ObjectStore:
         return QueryStatement(object_name=object_name, object_store=self)
 
     def get_object_metadata(self, object_name):
-        elements = self.__read_all()
-        elements = list(filter(lambda element: element.object_name == object_name, elements))
-        return elements[0] if len(elements) > 0 else None
+        obj_data = self.__read_object_data(object_name)
+        return obj_data
 
     def __read_all(self) -> list:
-        elements = JsonFileUtil.read_file(self.store_path)
-        return list(map(lambda element: ObjectStore.__parse_object_metadata(element), elements))
+        directory = Path(self.base_db_dir)
+        files = list(directory.glob("store_*.json"))
+        elements = [
+            ObjectStore.__parse_object_metadata(JsonFileUtil.read_file(file))
+            for file in files
+        ]
+        return elements
+
+    def __read_object_data(self, object_name: str) -> list:
+        obj_file = self.__get_store_file_path(object_name)
+        if not os.path.exists(obj_file):
+            raise ValueError(f'metadata not found for object- {self.__object_name}')
+        element = JsonFileUtil.read_file(obj_file)
+        obj_data = ObjectStore.__parse_object_metadata(element)
+        return obj_data
 
     def __update_object(self, metadata: ObjectMetadata):
-        elements = self.__read_all()
-        remaining = list(filter(lambda element: element.object_name != metadata.object_name, elements))
-        remaining.append(metadata)
-        self.__save_objects(remaining)
+        metadata.update_date = datetime.now()
+        self.__save_object(metadata)
 
-    def __save_objects(self, metadata_list: list):
-        metadata_list = sorted(metadata_list, key=lambda element: element.create_date)
-        data = list(map(lambda element: ObjectStore.__object_metadata_to_dict(element), metadata_list))
-        JsonFileUtil.write_file(self.store_path, data, 'w')
+    def __save_object(self, metadata: ObjectMetadata):
+        obj_file = self.__get_store_file_path(metadata.object_name)
+        data = ObjectStore.__object_metadata_to_dict(metadata)
+        JsonFileUtil.write_file(obj_file, data, 'w')
+
+    def __get_store_file_path(self, object_name: str) -> str:
+        return os.path.join(self.base_db_dir, f"store_{object_name.replace(' ', '_')}.json")
+
+    def __get_data_file_path(self, object_name: str) -> str:
+        return os.path.join(self.base_data_dir, object_name.replace(' ', '_'))
 
     @staticmethod
     def __parse_file_metadata(data: dict) -> FileMetadata:
@@ -178,9 +190,9 @@ class ObjectStore:
             "created_by": object_metadata.created_by,
             "file_format": object_metadata.file_format,
             "location": object_metadata.location,
-            "file_metadata": [ObjectStore.__file_metadata_to_dict(fm) for fm in object_metadata.file_metadata],
             "update_date": object_metadata.update_date.isoformat() if object_metadata.update_date else None,
-            "properties": object_metadata.properties
+            "properties": object_metadata.properties,
+            "file_metadata": [ObjectStore.__file_metadata_to_dict(fm) for fm in object_metadata.file_metadata],
         }
 
 
@@ -378,5 +390,3 @@ class QueryStatement:
         )
 
         self.__object_store.add_file(object_name=self.__object_name, file_metadata=file_metadata)
-
-
